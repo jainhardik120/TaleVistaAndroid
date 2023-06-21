@@ -27,9 +27,12 @@ interface TaleVistaApi {
     @POST("createUser")
     suspend fun createUser(@Body body: RequestBody): Response<LoginResponse>
 
-    @POST("api/auth/useGoogleIdToken")
+    @POST("useGoogleIdToken")
     suspend fun authorizeGoogleIdToken(@Body body: RequestBody): Response<LoginResponse>
 
-    @GET("api/auth/sendVerificationMail/{userId}")
+    @POST("createNewFromGoogleIdToken")
+    suspend fun createNewFromGoogleIdToken(@Body body: RequestBody): Response<LoginResponse>
+
+    @GET("sendVerificationMail/{userId}")
     suspend fun sendVerificationMail(@Path("userId") userId: String): Response<MessageResponse>
 }

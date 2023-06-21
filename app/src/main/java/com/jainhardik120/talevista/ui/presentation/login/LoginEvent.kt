@@ -17,4 +17,9 @@ sealed class LoginEvent {
     ) : LoginEvent()
 
     object LoginButtonClicked : LoginEvent()
+
+    object SignUpTextClicked : LoginEvent()
+    object RegisterMailButtonClicked : LoginEvent()
+    object RegisterPasswordButtonClicked : LoginEvent()
+    data class RegisterUsernameButtonClicked(val google: Boolean) : LoginEvent()
 }

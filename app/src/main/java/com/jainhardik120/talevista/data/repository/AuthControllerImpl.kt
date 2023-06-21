@@ -113,7 +113,9 @@ class AuthControllerImpl @Inject constructor(
                     val errorBody = response.errorBody()?.string()
                     val jsonBody = errorBody?.let { JSONObject(it) }
                     if (jsonBody != null) {
-                        val list = List<String>(jsonBody.getJSONArray("similarUsernames").length()){index -> jsonBody.getJSONArray("similarUsernames")[index].toString() }
+                        val list = List(
+                            jsonBody.getJSONArray("similarUsernames").length()
+                        ) { index -> jsonBody.getJSONArray("similarUsernames")[index].toString() }
                         Resource.Success(Pair(false, list))
                     } else {
                         Resource.Error(message = "Unknown Error")
@@ -156,19 +158,63 @@ class AuthControllerImpl @Inject constructor(
         }
     }
 
-    override suspend fun useGoogleIdToken(idToken: String): Resource<String> {
+    override suspend fun useGoogleIdToken(idToken: String): Resource<Boolean> {
         return try {
-            val loginResponse = api.createUser(
+            val loginResponse = api.authorizeGoogleIdToken(
                 RequestBody(
                     Pair("idToken", idToken)
                 )
             )
             if (loginResponse.isSuccessful) {
-                storeToken(loginResponse.body()?.token?:"null")
-                storeUserId(loginResponse.body()?.userId?:"null")
-                Resource.Success(loginResponse.body()?.userId)
+                storeToken(loginResponse.body()?.token ?: "null")
+                storeUserId(loginResponse.body()?.userId ?: "null")
+                Resource.Success(true)
             } else {
-                val errorBody = loginResponse.errorBody()?.string()
+                if (loginResponse.code() == 400) {
+                    val errorBody = loginResponse.errorBody()?.string()
+                    val jsonBody = errorBody?.let { JSONObject(it) }
+                    if (jsonBody != null) {
+                        if (jsonBody.getString("error") == "Username required") {
+                            Resource.Success(false)
+                        } else {
+                            Resource.Error(message = jsonBody.getString("error"))
+                        }
+                    } else {
+                        Resource.Error(message = "Unknown Error")
+                    }
+                } else {
+                    val errorBody = loginResponse.errorBody()?.string()
+                    val jsonBody = errorBody?.let { JSONObject(it) }
+                    if (jsonBody != null) {
+                        Resource.Error(message = jsonBody.getString("error"))
+                    } else {
+                        Resource.Error(message = "Unknown Error")
+                    }
+                }
+
+            }
+        } catch (e: Exception) {
+            Resource.Error(message = e.message ?: "Unknown Error")
+        }
+    }
+
+    override suspend fun createNewFromGoogleIdToken(
+        idToken: String,
+        username: String
+    ): Resource<Boolean> {
+        return try {
+            val response = api.createNewFromGoogleIdToken(
+                RequestBody(
+                    Pair("idToken", idToken),
+                    Pair("username", username)
+                )
+            )
+            if (response.isSuccessful) {
+                storeToken(response.body()?.token ?: "null")
+                storeUserId(response.body()?.userId ?: "null")
+                Resource.Success(true)
+            } else {
+                val errorBody = response.errorBody()?.string()
                 val jsonBody = errorBody?.let { JSONObject(it) }
                 if (jsonBody != null) {
                     Resource.Error(message = jsonBody.getString("error"))
