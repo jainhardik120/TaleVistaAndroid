@@ -17,6 +17,7 @@ import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.jainhardik120.talevista.data.remote.TaleVistaApi
 import com.jainhardik120.talevista.domain.repository.AuthController
+import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -42,6 +43,7 @@ class LoginViewModel @Inject constructor(
 
     private fun sendUiEvent(event: UiEvent) {
         viewModelScope.launch {
+            Log.d("TAG", "sendUiEvent: ")
             _uiEvent.send(event)
         }
     }
@@ -50,25 +52,13 @@ class LoginViewModel @Inject constructor(
 
     private fun onLoginClicked(emailAddress: String, password: String) {
         viewModelScope.launch {
-            try {
-//                val body = JSONObject(
-//                    mapOf(
-//                        Pair("email", emailAddress),
-//                        Pair("password", password)
-//                    )
-//                ).toString().toRequestBody(
-//                    "application/json".toMediaTypeOrNull()
-//                )
-//                Log.d("TAG", "onLoginClicked: $body")
-//                val loginResult = JSONObject(
-//                    api.loginUser(
-//                        body
-//                    )
-//                )
-//                handleAuthorizationResponse(loginResult)
-                val loginResult = authController.loginWithEmailPassword(emailAddress, password)
-            }  catch (e: Exception) {
-                Log.d("TAG", "onLoginClicked: ${e.message}")
+            when(val loginResult = authController.loginWithEmailPassword(emailAddress, password)){
+                is Resource.Error -> {
+                    sendUiEvent(UiEvent.ShowSnackbar(loginResult.message?:"Unknown Error"))
+                }
+                is Resource.Success -> {
+                    sendUiEvent(UiEvent.ShowSnackbar(message = loginResult.data?:"USER_ID_NOT_RECEIVED"))
+                }
             }
         }
     }
@@ -130,18 +120,6 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun handleAuthorizationResponse(response: JSONObject) {
-        Log.d("TAG", "handleAuthorizationResponse: $response")
-        with(sharedPreferences.edit()) {
-            putString("TOKEN", response.getString("token"))
-            putString("F_NAME", response.getJSONObject("user").getString("first_name"))
-            putString("L_NAME", response.getJSONObject("user").getString("last_name"))
-            putString("EMAIL", response.getJSONObject("user").getString("email"))
-            putBoolean("VERIFIED", response.getJSONObject("user").getBoolean("verified"))
-            putString("PICTURE", response.getJSONObject("user").getString("picture"))
-        }.apply()
-    }
-
     fun handleIntentResult(result: ActivityResult) {
         if (result.resultCode != Activity.RESULT_OK) {
             return
@@ -176,51 +154,23 @@ class LoginViewModel @Inject constructor(
             is LoginEvent.LoginMailChanged -> {
                 state = state.copy(loginEmail = event.email)
             }
-
             is LoginEvent.LoginPasswordChanged -> {
                 state = state.copy(loginPassword = event.password)
             }
-
-            is LoginEvent.RegisterFNameChanged -> {
-                state = state.copy(registerFName = event.name)
-            }
-
-            is LoginEvent.RegisterLNameChanged -> {
-                state = state.copy(registerLName = event.name)
-            }
-
             is LoginEvent.RegisterMailChanged -> {
                 state = state.copy(registerEmail = event.email)
             }
-
             is LoginEvent.RegisterPasswordChanged -> {
                 state = state.copy(registerPassword = event.password)
             }
-
-            is LoginEvent.RegisterRePasswordChanged -> {
-                state = state.copy(registerRePassword = event.password)
+            is LoginEvent.RegisterUserNameChanged -> {
+                state = state.copy(registerUsername = event.username)
             }
-
             is LoginEvent.LoginButtonClicked -> {
                 onLoginClicked(state.loginEmail, state.loginPassword)
             }
-
-            is LoginEvent.RegisterButtonClicked -> {
-                registerUser(
-                    state.registerFName,
-                    state.registerLName,
-                    state.registerEmail,
-                    state.registerPassword,
-                    state.registerPassword
-                )
-            }
-
-            LoginEvent.ChangeScreen -> {
-                state = if (state.currPage == LoginPage.ExistingAccount) {
-                    state.copy(currPage = LoginPage.NewAccount)
-                } else {
-                    state.copy(currPage = LoginPage.ExistingAccount)
-                }
+            is LoginEvent.LaunchOneTapClient -> {
+                launchOneTapIntent(event.context, event.launcher)
             }
         }
     }

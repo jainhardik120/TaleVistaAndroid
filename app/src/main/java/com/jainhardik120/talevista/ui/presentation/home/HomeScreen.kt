@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.jainhardik120.talevista.util.UiEvent
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -33,7 +34,7 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp : (UiEvent.Navigate)->Unit) {
     Column {
 
         Button(onClick = {
@@ -45,7 +46,6 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
             itemsIndexed(viewModel.state.posts) { _, item ->
                 PostCard(post = item)
             }
-
         })
     }
 }
