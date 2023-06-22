@@ -50,6 +50,7 @@ fun CreatePostScreen(
     }
     val state = viewModel.state
     LaunchedEffect(key1 = true, block = {
+        viewModel.setCategories(sharedState.categories)
         viewModel.uiEvent.collect {
             when (it) {
                 is UiEvent.Navigate -> {
@@ -67,8 +68,8 @@ fun CreatePostScreen(
             dropDownExpanded = !dropDownExpanded
         }) {
             OutlinedTextField(
-                value = if (sharedState.categories.isNotEmpty()) {
-                    sharedState.categories[state.selectedCategory].name
+                value = if (state.categories.isNotEmpty()) {
+                    state.categories[state.selectedCategory].name
                 } else {
                     ""
                 },
@@ -81,11 +82,11 @@ fun CreatePostScreen(
                 },
                 readOnly = true
             )
-            if (sharedState.categories.isNotEmpty()) {
+            if (state.categories.isNotEmpty()) {
                 ExposedDropdownMenu(
                     expanded = dropDownExpanded,
                     onDismissRequest = { dropDownExpanded = false }) {
-                    sharedState.categories.forEachIndexed { index, categoriesItem ->
+                    state.categories.forEachIndexed { index, categoriesItem ->
                         DropdownMenuItem(
                             text = { Text(text = categoriesItem.name) },
                             onClick = {
@@ -139,7 +140,7 @@ fun CreatePostScreen(
                     modifier = Modifier.height(36.dp),
                     enabled = sendMessageEnabled,
                     onClick = {
-
+                        viewModel.onEvent(CreatePostsEvent.SendButtonClicked)
                     },
                     colors = buttonColors,
                     border = border,

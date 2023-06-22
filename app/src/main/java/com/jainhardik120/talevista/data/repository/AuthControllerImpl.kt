@@ -53,6 +53,14 @@ class AuthControllerImpl @Inject constructor(
         }
     }
 
+    override fun getUserId(): String? {
+        return if (isLoggedIn()) {
+            sharedPreferences.getString(USER_ID_KEY, "null")
+        } else {
+            null
+        }
+    }
+
     override suspend fun loginWithEmailPassword(email: String, password: String): Resource<String> {
         return try {
             val loginResponse = api.loginUser(

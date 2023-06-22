@@ -3,8 +3,10 @@ package com.jainhardik120.talevista.domain.repository
 import com.jainhardik120.talevista.util.Resource
 
 interface AuthController {
-    fun isLoggedIn() : Boolean
+    fun isLoggedIn(): Boolean
     fun getToken(): String?
+
+    fun getUserId(): String?
 
     suspend fun loginWithEmailPassword(email: String, password: String): Resource<String>
 

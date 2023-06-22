@@ -5,11 +5,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -21,11 +17,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -41,6 +37,8 @@ import com.jainhardik120.talevista.ui.presentation.home.createpost.CreatePostScr
 import com.jainhardik120.talevista.ui.presentation.home.createpost.CreatePostViewModel
 import com.jainhardik120.talevista.ui.presentation.home.posts.PostsScreen
 import com.jainhardik120.talevista.ui.presentation.home.posts.PostsScreenViewModel
+import com.jainhardik120.talevista.ui.presentation.home.profile.ProfileScreen
+import com.jainhardik120.talevista.ui.presentation.home.profile.ProfileScreenViewModel
 import com.jainhardik120.talevista.util.UiEvent
 
 @Composable
@@ -50,7 +48,21 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
     val currentDestination = navBackStackEntry?.destination
     val postsScreenViewModel: PostsScreenViewModel = hiltViewModel()
     val createPostsScreenViewModel: CreatePostViewModel = hiltViewModel()
+    val profileScreenViewModel: ProfileScreenViewModel = hiltViewModel()
     val hostState = remember { SnackbarHostState() }
+    LaunchedEffect(key1 = true, block = {
+        viewModel.uiEvent.collect {
+            when (it) {
+                is UiEvent.Navigate -> {
+
+                }
+
+                is UiEvent.ShowSnackbar -> {
+                    hostState.showSnackbar(it.message)
+                }
+            }
+        }
+    })
     Scaffold(snackbarHost = { SnackbarHost(hostState = hostState) }, bottomBar = {
         val bottomBarScreens = listOf(
             BottomBarScreen.Posts,
@@ -84,9 +96,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
                 }
             }
         }
-    },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(WindowInsets.navigationBars)
-            .exclude(WindowInsets.ime)
+    }
     ) { paddingValues ->
         Column(
             Modifier
@@ -101,7 +111,10 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
                 composable(route = HomeScreenRoutes.PostsScreen.route) {
                     PostsScreen(postsScreenViewModel)
                 }
-                composable(route = HomeScreenRoutes.ProfileScreen.route) {
+                composable(
+                    route = HomeScreenRoutes.ProfileScreen.route
+                ) {
+                    ProfileScreen(profileScreenViewModel)
                 }
                 composable(route = HomeScreenRoutes.SearchScreen.route) {
 

@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import com.jainhardik120.talevista.data.remote.PostsApi
 import com.jainhardik120.talevista.data.remote.TaleVistaApi
 import com.jainhardik120.talevista.data.remote.TokenInterceptor
+import com.jainhardik120.talevista.data.remote.UsersApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,7 +50,20 @@ object AppModule {
     }
 
     @Provides
-    fun provideTokenInterceptor(sharedPreferences: SharedPreferences) : TokenInterceptor{
+    fun usersApi(tokenInterceptor: TokenInterceptor): UsersApi {
+
+        return Retrofit.Builder().addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create())
+            .client(OkHttpClient.Builder().apply {
+                addInterceptor(tokenInterceptor)
+            }.build())
+            .baseUrl(
+                UsersApi.BASE_URL
+            ).build().create()
+    }
+
+    @Provides
+    fun provideTokenInterceptor(sharedPreferences: SharedPreferences): TokenInterceptor {
         return TokenInterceptor(sharedPreferences)
     }
 }

@@ -44,7 +44,7 @@ fun PostsScreen(viewModel: PostsScreenViewModel) {
     Column {
         LazyColumn(content = {
             itemsIndexed(viewModel.state.posts) { _, item ->
-                PostCard(post = item)
+                PostCard(post = item, onEvent = viewModel::onEvent)
             }
         })
     }
@@ -52,7 +52,7 @@ fun PostsScreen(viewModel: PostsScreenViewModel) {
 
 
 @Composable
-fun PostCard(post: Post) {
+fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
@@ -93,7 +93,9 @@ fun PostCard(post: Post) {
             Spacer(modifier = Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FilledTonalIconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        onEvent(PostsScreenEvent.LikeButtonClicked(post._id))
+                    },
                     modifier = Modifier.size(35.dp)
                 ) {
                     Icon(
@@ -108,7 +110,9 @@ fun PostCard(post: Post) {
                     modifier = Modifier.padding(10.dp)
                 )
                 FilledTonalIconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        onEvent(PostsScreenEvent.DislikeButtonClicked(post._id))
+                    },
                     modifier = Modifier.size(35.dp)
                 ) {
                     Icon(
