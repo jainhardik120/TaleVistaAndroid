@@ -1,7 +1,5 @@
 package com.jainhardik120.talevista.ui.presentation
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -14,7 +12,6 @@ import com.jainhardik120.talevista.ui.presentation.login.LoginScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RootNavigationGraph(navController: NavHostController) {
     val viewModel : RootViewModel = hiltViewModel()

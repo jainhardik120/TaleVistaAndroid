@@ -56,7 +56,7 @@ fun RegisterUsernameScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn(content = {
-                itemsIndexed(state.recommendedUserNames) { index, item ->
+                itemsIndexed(state.recommendedUserNames) { _, item ->
                     Text(text = item)
                 }
             })
