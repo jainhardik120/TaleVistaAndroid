@@ -6,6 +6,7 @@ import com.jainhardik120.talevista.data.remote.dto.CommentsItem
 import com.jainhardik120.talevista.data.remote.dto.CreatePostResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
 import com.jainhardik120.talevista.data.remote.dto.Posts
+import com.jainhardik120.talevista.data.remote.dto.SinglePost
 import okhttp3.Interceptor
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -46,7 +47,9 @@ interface PostsApi {
     @GET(BASE_URL)
     suspend fun getPosts(
         @Query("page") page: Int? = null,
-        @Query("limit") limit: Int? = null
+        @Query("limit") limit: Int? = null,
+        @Query("userId") userId: String? = null,
+        @Query("category") category: String? = null,
     ): Posts
 
     @GET("category/{category}")
@@ -55,6 +58,11 @@ interface PostsApi {
         @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null
     ): Response<Posts>
+
+    @GET("post/{postId}")
+    suspend fun getSinglePost(
+        @Path("postId") postId: String
+    ): Response<SinglePost>
 
     @POST(BASE_URL)
     suspend fun createPost(

@@ -5,17 +5,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
+import com.jainhardik120.talevista.data.remote.PostsQuery
 import com.jainhardik120.talevista.data.remote.UsersApi
+import com.jainhardik120.talevista.domain.repository.AuthController
+import com.jainhardik120.talevista.domain.repository.PostsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileScreenViewModel @Inject constructor(
-    private val usersApi: UsersApi
+    private val usersApi: UsersApi,
+    private val authController: AuthController,
+    private val postsRepository: PostsRepository
 ) : ViewModel() {
 
     var state by mutableStateOf(ProfileState())
+
+    val postsPagingFlow = postsRepository.getPosts(PostsQuery(userId = authController.getUserId()))
+        .cachedIn(viewModelScope)
 
     init {
         viewModelScope.launch {

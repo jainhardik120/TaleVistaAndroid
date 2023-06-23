@@ -6,12 +6,13 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.jainhardik120.talevista.data.remote.PostsApi
 import com.jainhardik120.talevista.data.remote.PostsPagingSource
+import com.jainhardik120.talevista.data.remote.PostsQuery
 import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
 import com.jainhardik120.talevista.data.remote.dto.CommentsItem
 import com.jainhardik120.talevista.data.remote.dto.CreatePostResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
 import com.jainhardik120.talevista.data.remote.dto.Post
-import com.jainhardik120.talevista.data.remote.dto.Posts
+import com.jainhardik120.talevista.data.remote.dto.SinglePost
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -70,36 +71,17 @@ class PostsRepositoryImpl @Inject constructor(
         return handleApiCall { api.getCategories() }
     }
 
-    override suspend fun getPosts(page: Int?, limit: Int?): Resource<Posts> {
-        return handleApiCall { api.getPostsResponse(page = page, limit = limit) }
-    }
-
-    override fun getPosts(): Flow<PagingData<Post>> {
+    override fun getPosts(query: PostsQuery): Flow<PagingData<Post>> {
         return Pager(
             config = PagingConfig(
                 pageSize = 4,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = {
-                PostsPagingSource(postsApi = api)
+                PostsPagingSource(postsApi = api, query)
             }
         ).flow
     }
-
-    override suspend fun getCategoryPosts(
-        category: String,
-        page: Int?,
-        limit: Int?
-    ): Resource<Posts> {
-        return handleApiCall {
-            api.getCategoryPosts(
-                category = category,
-                page = page,
-                limit = limit
-            )
-        }
-    }
-
     override suspend fun createPost(
         content: String,
         category: String
@@ -112,6 +94,10 @@ class PostsRepositoryImpl @Inject constructor(
                 )
             )
         }
+    }
+
+    override suspend fun getSinglePost(postId: String): Resource<SinglePost> {
+        return handleApiCall { api.getSinglePost(postId) }
     }
 
     override suspend fun likePost(postId: String): Resource<MessageResponse> {

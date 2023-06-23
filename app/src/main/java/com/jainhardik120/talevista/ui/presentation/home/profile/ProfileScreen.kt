@@ -7,11 +7,12 @@ import androidx.compose.runtime.Composable
 @Composable
 fun ProfileScreen(viewModel: ProfileScreenViewModel) {
     val state = viewModel.state
-    Column {
+    Column() {
         Text(text = state.username)
         Text(text = state.firstName)
         Text(text = state.lastName)
         Text(text = state.email)
         Text(text = state.createdAt)
     }
+//    PostsContainer(posts = viewModel.postsPagingFlow.collectAsLazyPagingItems())
 }

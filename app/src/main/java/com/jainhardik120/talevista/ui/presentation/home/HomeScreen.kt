@@ -31,14 +31,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.jainhardik120.talevista.ui.presentation.home.createpost.CreatePostScreen
 import com.jainhardik120.talevista.ui.presentation.home.createpost.CreatePostViewModel
 import com.jainhardik120.talevista.ui.presentation.home.posts.PostsScreen
 import com.jainhardik120.talevista.ui.presentation.home.posts.PostsScreenViewModel
+import com.jainhardik120.talevista.ui.presentation.home.postscreen.PostScreen
+import com.jainhardik120.talevista.ui.presentation.home.postscreen.PostViewModel
 import com.jainhardik120.talevista.ui.presentation.home.profile.ProfileScreen
 import com.jainhardik120.talevista.ui.presentation.home.profile.ProfileScreenViewModel
 import com.jainhardik120.talevista.util.UiEvent
@@ -52,7 +56,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
     val currentDestination = navBackStackEntry?.destination
 
     val createPostsScreenViewModel: CreatePostViewModel = hiltViewModel()
-    val profileScreenViewModel: ProfileScreenViewModel = hiltViewModel()
+
     val hostState = remember { SnackbarHostState() }
     LaunchedEffect(key1 = true, block = {
         viewModel.uiEvent.collect {
@@ -116,11 +120,14 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
             ) {
                 composable(route = HomeScreenRoutes.PostsScreen.route) {
                     val postsScreenViewModel: PostsScreenViewModel = hiltViewModel()
-                    PostsScreen(postsScreenViewModel)
+                    PostsScreen(postsScreenViewModel) { route ->
+                        navController.navigate(route)
+                    }
                 }
                 composable(
                     route = HomeScreenRoutes.ProfileScreen.route
                 ) {
+                    val profileScreenViewModel: ProfileScreenViewModel = hiltViewModel()
                     ProfileScreen(profileScreenViewModel)
                 }
                 composable(route = HomeScreenRoutes.SearchScreen.route) {
@@ -131,6 +138,16 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
                 }
                 composable(route = HomeScreenRoutes.CreatePostScreen.route) {
                     CreatePostScreen(createPostsScreenViewModel, viewModel.state, hostState)
+                }
+                composable(
+                    route = HomeScreenRoutes.SinglePostScreen.route + "/{postId}",
+                    arguments = listOf(navArgument("postId") {
+                        type = NavType.StringType
+                        nullable = false
+                    })
+                ) {
+                    val postViewModel: PostViewModel = hiltViewModel()
+                    PostScreen(postViewModel)
                 }
             }
         }
@@ -143,6 +160,7 @@ sealed class HomeScreenRoutes(val route: String) {
     object CreatePostScreen : HomeScreenRoutes("create_post_screen")
     object ChatScreen : HomeScreenRoutes("bottom_chat_screen")
     object SearchScreen : HomeScreenRoutes("bottom_search_screen")
+    object SinglePostScreen : HomeScreenRoutes("single_post_screen")
 
     fun withArgs(vararg args: String): String {
         return buildString {

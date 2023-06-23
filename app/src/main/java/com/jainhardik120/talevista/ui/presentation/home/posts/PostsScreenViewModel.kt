@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.domain.repository.PostsRepository
+import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -33,20 +34,6 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
         }
     }
 
-//    init {
-//        viewModelScope.launch {
-//            when (val result = postsRepository.getPosts()) {
-//                is Resource.Error -> {
-//                    sendUiEvent(UiEvent.ShowSnackbar(result.message ?: "Unknown Error"))
-//                }
-//
-//                is Resource.Success -> {
-//                    state = state.copy(posts = result.data?.posts ?: emptyList())
-//                }
-//            }
-//        }
-//    }
-
     fun onEvent(event: PostsScreenEvent) {
         when (event) {
             is PostsScreenEvent.DislikeButtonClicked -> {
@@ -60,6 +47,10 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
                     postsRepository.likePost(event.postId)
                 }
             }
+
+            is PostsScreenEvent.PostClicked -> {
+                sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.SinglePostScreen.withArgs(event.postId)))
+            }
         }
     }
 }
@@ -71,4 +62,5 @@ data class PostsScreenState(
 sealed class PostsScreenEvent {
     data class LikeButtonClicked(val postId: String) : PostsScreenEvent()
     data class DislikeButtonClicked(val postId: String) : PostsScreenEvent()
+    data class PostClicked(val postId: String) : PostsScreenEvent()
 }

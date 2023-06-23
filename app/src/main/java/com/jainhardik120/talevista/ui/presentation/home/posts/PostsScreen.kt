@@ -4,6 +4,7 @@ import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,19 +42,33 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.jainhardik120.talevista.data.remote.dto.Post
+import com.jainhardik120.talevista.util.UiEvent
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun PostsScreen(viewModel: PostsScreenViewModel) {
+fun PostsScreen(viewModel: PostsScreenViewModel, onNavigate: (String) -> Unit) {
+    LaunchedEffect(key1 = Unit, block = {
+        viewModel.uiEvent.collect {
+            when (it) {
+                is UiEvent.Navigate -> {
+                    onNavigate(it.route)
+                }
+
+                is UiEvent.ShowSnackbar -> {
+
+                }
+            }
+        }
+    })
     val posts = viewModel.postsPagingFlow.collectAsLazyPagingItems()
-    PostsContainer(posts = posts)
+    PostsContainer(posts = posts, onEvent = viewModel::onEvent)
 }
 
 @Composable
-fun PostsContainer(posts: LazyPagingItems<Post>) {
+fun PostsContainer(posts: LazyPagingItems<Post>, onEvent: (PostsScreenEvent) -> Unit) {
     val context = LocalContext.current
     LaunchedEffect(key1 = posts.loadState, block = {
         if (posts.loadState.refresh is LoadState.Error) {
@@ -64,7 +79,7 @@ fun PostsContainer(posts: LazyPagingItems<Post>) {
             ).show()
         }
     })
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize(1f)) {
         if (posts.loadState.refresh is LoadState.Loading) {
             CircularProgressIndicator(
                 Modifier.align(Alignment.Center)
@@ -74,7 +89,7 @@ fun PostsContainer(posts: LazyPagingItems<Post>) {
                 items(count = posts.itemCount) { index ->
                     val post = posts[index]
                     if (post != null) {
-                        PostCard(post = post, onEvent = {})
+                        PostCard(post = post, onEvent = onEvent)
                     }
                 }
                 item {
@@ -95,7 +110,11 @@ fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit) {
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
         ),
 
-        modifier = Modifier.padding(top = 12.dp, start = 12.dp, end = 12.dp),
+        modifier = Modifier
+            .padding(top = 12.dp, start = 12.dp, end = 12.dp)
+            .clickable(
+                onClick = { onEvent(PostsScreenEvent.PostClicked(post._id)) }
+            ),
         shape = RoundedCornerShape(10.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
