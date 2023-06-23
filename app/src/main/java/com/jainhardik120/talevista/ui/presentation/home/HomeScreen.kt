@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -41,12 +43,14 @@ import com.jainhardik120.talevista.ui.presentation.home.profile.ProfileScreen
 import com.jainhardik120.talevista.ui.presentation.home.profile.ProfileScreenViewModel
 import com.jainhardik120.talevista.util.UiEvent
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.Navigate) -> Unit) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val postsScreenViewModel: PostsScreenViewModel = hiltViewModel()
+
     val createPostsScreenViewModel: CreatePostViewModel = hiltViewModel()
     val profileScreenViewModel: ProfileScreenViewModel = hiltViewModel()
     val hostState = remember { SnackbarHostState() }
@@ -63,7 +67,9 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
             }
         }
     })
-    Scaffold(snackbarHost = { SnackbarHost(hostState = hostState) }, bottomBar = {
+    Scaffold(topBar = {
+        CenterAlignedTopAppBar(title = { Text(text = "TaleVista") })
+    }, snackbarHost = { SnackbarHost(hostState = hostState) }, bottomBar = {
         val bottomBarScreens = listOf(
             BottomBarScreen.Posts,
             BottomBarScreen.Search,
@@ -109,6 +115,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
                 startDestination = HomeScreenRoutes.PostsScreen.route
             ) {
                 composable(route = HomeScreenRoutes.PostsScreen.route) {
+                    val postsScreenViewModel: PostsScreenViewModel = hiltViewModel()
                     PostsScreen(postsScreenViewModel)
                 }
                 composable(

@@ -6,9 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.domain.repository.PostsRepository
-import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -21,6 +21,8 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
     ViewModel() {
     var state by mutableStateOf(PostsScreenState())
 
+    val postsPagingFlow = postsRepository.getPosts().cachedIn(viewModelScope)
+
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
@@ -31,19 +33,19 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
         }
     }
 
-    init {
-        viewModelScope.launch {
-            when (val result = postsRepository.getPosts()) {
-                is Resource.Error -> {
-                    sendUiEvent(UiEvent.ShowSnackbar(result.message ?: "Unknown Error"))
-                }
-
-                is Resource.Success -> {
-                    state = state.copy(posts = result.data?.posts ?: emptyList())
-                }
-            }
-        }
-    }
+//    init {
+//        viewModelScope.launch {
+//            when (val result = postsRepository.getPosts()) {
+//                is Resource.Error -> {
+//                    sendUiEvent(UiEvent.ShowSnackbar(result.message ?: "Unknown Error"))
+//                }
+//
+//                is Resource.Success -> {
+//                    state = state.copy(posts = result.data?.posts ?: emptyList())
+//                }
+//            }
+//        }
+//    }
 
     fun onEvent(event: PostsScreenEvent) {
         when (event) {

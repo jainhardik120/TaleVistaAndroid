@@ -78,16 +78,19 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended")
 
-    implementation (libs.androidx.navigation.compose)
-    implementation( libs.androidx.lifecycle.viewmodel.compose)
-    implementation (libs.hilt.android)
-    kapt (libs.hilt.android.compiler)
-    kapt (libs.hilt.compiler)
-    implementation (libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
+    kapt(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation (libs.retrofit)
-    implementation (libs.converter.moshi)
-    implementation (libs.okhttp)
-    implementation ("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.3")
-    implementation ("com.squareup.retrofit2:converter-scalars:2.9.0")
+    implementation(libs.retrofit)
+    implementation(libs.converter.moshi)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+    implementation(libs.converter.scalars)
+
+    implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.paging.compose)
 }

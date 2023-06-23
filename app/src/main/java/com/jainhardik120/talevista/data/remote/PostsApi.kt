@@ -38,10 +38,16 @@ interface PostsApi {
     suspend fun getCategories(): Response<List<CategoriesItem>>
 
     @GET(BASE_URL)
-    suspend fun getPosts(
+    suspend fun getPostsResponse(
         @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null
     ): Response<Posts>
+
+    @GET(BASE_URL)
+    suspend fun getPosts(
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null
+    ): Posts
 
     @GET("category/{category}")
     suspend fun getCategoryPosts(

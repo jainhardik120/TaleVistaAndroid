@@ -1,17 +1,22 @@
 package com.jainhardik120.talevista.domain.repository
 
+import androidx.paging.PagingData
 import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
 import com.jainhardik120.talevista.data.remote.dto.CommentsItem
 import com.jainhardik120.talevista.data.remote.dto.CreatePostResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
+import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.data.remote.dto.Posts
 import com.jainhardik120.talevista.util.Resource
+import kotlinx.coroutines.flow.Flow
 
 interface PostsRepository {
 
     suspend fun getCategories(): Resource<List<CategoriesItem>>
 
     suspend fun getPosts(page: Int? = null, limit: Int? = null): Resource<Posts>
+
+    fun getPosts(): Flow<PagingData<Post>>
 
     suspend fun getCategoryPosts(
         category: String,

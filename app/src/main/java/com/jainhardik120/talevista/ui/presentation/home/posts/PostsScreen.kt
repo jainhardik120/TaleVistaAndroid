@@ -1,18 +1,20 @@
 package com.jainhardik120.talevista.ui.presentation.home.posts
 
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,17 +23,23 @@ import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.jainhardik120.talevista.data.remote.dto.Post
 import java.time.Duration
 import java.time.LocalDateTime
@@ -40,13 +48,42 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun PostsScreen(viewModel: PostsScreenViewModel) {
-    val state = viewModel.state
-    Column {
-        LazyColumn(content = {
-            itemsIndexed(viewModel.state.posts) { _, item ->
-                PostCard(post = item, onEvent = viewModel::onEvent)
-            }
-        })
+    val posts = viewModel.postsPagingFlow.collectAsLazyPagingItems()
+    PostsContainer(posts = posts)
+}
+
+@Composable
+fun PostsContainer(posts: LazyPagingItems<Post>) {
+    val context = LocalContext.current
+    LaunchedEffect(key1 = posts.loadState, block = {
+        if (posts.loadState.refresh is LoadState.Error) {
+            Toast.makeText(
+                context,
+                "Error: " + (posts.loadState.refresh as LoadState.Error).error.message,
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    })
+    Box(Modifier.fillMaxSize()) {
+        if (posts.loadState.refresh is LoadState.Loading) {
+            CircularProgressIndicator(
+                Modifier.align(Alignment.Center)
+            )
+        } else {
+            LazyColumn(content = {
+                items(count = posts.itemCount) { index ->
+                    val post = posts[index]
+                    if (post != null) {
+                        PostCard(post = post, onEvent = {})
+                    }
+                }
+                item {
+                    if (posts.loadState.append is LoadState.Loading) {
+                        CircularProgressIndicator()
+                    }
+                }
+            })
+        }
     }
 }
 

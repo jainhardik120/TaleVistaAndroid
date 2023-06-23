@@ -1,14 +1,20 @@
 package com.jainhardik120.talevista.data.repository
 
 import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.jainhardik120.talevista.data.remote.PostsApi
+import com.jainhardik120.talevista.data.remote.PostsPagingSource
 import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
 import com.jainhardik120.talevista.data.remote.dto.CommentsItem
 import com.jainhardik120.talevista.data.remote.dto.CreatePostResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
+import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.data.remote.dto.Posts
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.util.Resource
+import kotlinx.coroutines.flow.Flow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -65,7 +71,19 @@ class PostsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getPosts(page: Int?, limit: Int?): Resource<Posts> {
-        return handleApiCall { api.getPosts(page = page, limit = limit) }
+        return handleApiCall { api.getPostsResponse(page = page, limit = limit) }
+    }
+
+    override fun getPosts(): Flow<PagingData<Post>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 4,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = {
+                PostsPagingSource(postsApi = api)
+            }
+        ).flow
     }
 
     override suspend fun getCategoryPosts(
