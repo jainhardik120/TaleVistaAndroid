@@ -1,6 +1,5 @@
 package com.jainhardik120.talevista.ui.presentation.login
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -34,7 +33,6 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navigateUp : (Strin
                 }
 
                 is UiEvent.ShowSnackbar -> {
-                    Log.d("TAG", "LoginScreen: Recieved Snackbar")
                     hostState.showSnackbar(it.message)
                 }
             }

@@ -1,6 +1,7 @@
 package com.jainhardik120.talevista.data.repository
 
 import android.content.SharedPreferences
+import android.util.Log
 import com.jainhardik120.talevista.data.remote.TaleVistaApi
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.util.Resource
@@ -74,6 +75,7 @@ class AuthControllerImpl @Inject constructor(
                 storeUserId(loginResponse.body()?.userId?:"null")
                 Resource.Success(loginResponse.body()?.userId)
             } else {
+                Log.d(TAG, "loginWithEmailPassword: Entered Login Response Error Body")
                 val errorBody = loginResponse.errorBody()?.string()
                 val jsonBody = errorBody?.let { JSONObject(it) }
                 if (jsonBody != null) {
@@ -83,6 +85,7 @@ class AuthControllerImpl @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            Log.d(TAG, "loginWithEmailPassword: ${e.printStackTrace()}")
             Resource.Error(message = e.message ?: "Unknown Error")
         }
     }

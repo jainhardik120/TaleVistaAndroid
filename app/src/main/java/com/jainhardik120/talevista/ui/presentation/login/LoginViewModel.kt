@@ -2,7 +2,6 @@ package com.jainhardik120.talevista.ui.presentation.login
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -22,7 +21,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,7 +37,6 @@ class LoginViewModel @Inject constructor(
 
     private fun sendUiEvent(event: UiEvent) {
         viewModelScope.launch {
-            Log.d("TAG", "sendUiEvent: ")
             _uiEvent.send(event)
         }
     }
@@ -76,12 +73,15 @@ class LoginViewModel @Inject constructor(
                 )
                 .setAutoSelectEnabled(true)
                 .build()
-            try {
-                val result = oneTapClient.beginSignIn(signInRequest).await()
-                val intentSenderRequest =
-                    IntentSenderRequest.Builder(result.pendingIntent).build()
-                launcher.launch(intentSenderRequest)
-            } catch (e: Exception) {
+            oneTapClient.beginSignIn(signInRequest).addOnSuccessListener { result ->
+                try {
+                    val intentSenderRequest =
+                        IntentSenderRequest.Builder(result.pendingIntent).build()
+                    launcher.launch(intentSenderRequest)
+                } catch (e: Exception) {
+                    sendUiEvent(UiEvent.ShowSnackbar(e.message ?: ""))
+                }
+            }.addOnFailureListener { e ->
                 sendUiEvent(UiEvent.ShowSnackbar(e.message ?: ""))
             }
         }

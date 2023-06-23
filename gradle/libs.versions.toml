@@ -1,9 +1,10 @@
 [versions]
-agp = "8.1.0-beta05"
+agp = "8.1.0-rc01"
 androidx-hilt-compiler = "1.0.0"
 androidx-paging-compose = "3.2.0-beta01"
 converter-moshi = "2.9.0"
 firebase-auth-ktx = "22.0.0"
+google-services = "4.3.15"
 hilt-android-compiler = "2.44.2"
 hilt-android = "2.44.2"
 navigation-compose = "2.6.0"
@@ -30,8 +31,10 @@ converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.r
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "converter-moshi" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx", version.ref = "firebase-auth-ktx" }
+google-services = { module = "com.google.gms:google-services", version.ref = "google-services" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt-android-compiler" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }
+hilt-android-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hilt-android-compiler" }
 hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "androidx-hilt-compiler" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
