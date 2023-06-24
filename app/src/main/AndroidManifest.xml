@@ -19,7 +19,7 @@
             android:name=".ui.MainActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="true"
-            android:theme="@style/Theme.TaleVista">
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

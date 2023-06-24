@@ -15,7 +15,7 @@ android {
         applicationId = "com.jainhardik120.talevista"
         minSdk = 24
         targetSdk = 33
-        versionCode = 1
+        versionCode = 2
         versionName = "0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -55,6 +55,8 @@ android {
 }
 
 dependencies {
+
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
 //    implementation( platform("com.google.firebase:firebase-bom:32.1.0"))
 //    implementation ("com.google.firebase:firebase-analytics-ktx")

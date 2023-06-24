@@ -89,13 +89,4 @@ sealed class LoginScreenRoutes(val route: String){
     object RegisterPasswordScreen : LoginScreenRoutes("register_password")
     object RegisterUsernameScreen : LoginScreenRoutes("register_username")
     object GoogleUsernameScreen : LoginScreenRoutes("google_username")
-
-    fun withArgs(vararg args: String):String{
-        return buildString {
-            append(route)
-            args.forEach { arg->
-                append("/$arg")
-            }
-        }
-    }
 }
