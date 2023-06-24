@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jainhardik120.talevista.data.remote.dto.CommentsItem
 import com.jainhardik120.talevista.data.remote.dto.SinglePost
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
@@ -22,9 +23,10 @@ class PostViewModel @Inject constructor(
 ) : ViewModel() {
 
     var state by mutableStateOf(PostState())
+    var postId = ""
 
     fun init() {
-        val postId = savedStateHandle.get<String>("postId") ?: return
+        postId = savedStateHandle.get<String>("postId") ?: return
         viewModelScope.launch {
             when (val response = postsRepository.getSinglePost(postId)) {
                 is Resource.Error -> {
@@ -38,11 +40,54 @@ class PostViewModel @Inject constructor(
                     )
                 }
             }
+            when (val response = postsRepository.getPostComments(postId)) {
+                is Resource.Error -> {
+
+                }
+
+                is Resource.Success -> {
+                    if (response.data != null) {
+                        state = state.copy(comments = response.data)
+                    }
+                }
+            }
         }
+    }
+
+    fun onEvent(event: PostScreenEvent) {
+        when (event) {
+            PostScreenEvent.CommentPostButtonClicked -> {
+                if (state.newCommentContent.isNotBlank()) {
+                    viewModelScope.launch {
+                        when (postsRepository.createComment(postId, state.newCommentContent)) {
+                            is Resource.Error -> {
+
+                            }
+
+                            is Resource.Success -> {
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            is PostScreenEvent.NewCommentChanged -> {
+                state = state.copy(newCommentContent = event.string)
+            }
+        }
+
     }
 }
 
 data class PostState(
     val post: SinglePost? = null,
-    val isAuthorUser: Boolean = false
+    val isAuthorUser: Boolean = false,
+    val comments: List<CommentsItem> = emptyList(),
+    val newCommentContent: String = ""
 )
+
+sealed class PostScreenEvent {
+    object CommentPostButtonClicked : PostScreenEvent()
+    data class NewCommentChanged(val string: String) : PostScreenEvent()
+}

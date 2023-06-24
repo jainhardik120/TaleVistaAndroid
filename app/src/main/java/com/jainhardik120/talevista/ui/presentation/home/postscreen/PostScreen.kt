@@ -5,11 +5,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -25,22 +29,38 @@ fun PostScreen(viewModel: PostViewModel) {
     LaunchedEffect(key1 = Unit, block = {
         viewModel.init()
     })
+    val state = viewModel.state
     val post = viewModel.state.post
     if (post != null) {
-        Column {
-
-            if (viewModel.state.isAuthorUser) {
-                Text(text = "You are the author")
+        LazyColumn(content = {
+            item {
+                UserCard(author = post.post.author)
             }
-            PostScreenContent(post = post)
-        }
+            item {
+                Text(text = post.post.content)
+            }
+            item {
+                Row {
+                    TextField(value = state.newCommentContent, onValueChange = {
+                        viewModel.onEvent(PostScreenEvent.NewCommentChanged(it))
+                    })
+                    Button(onClick = {
+                        viewModel.onEvent(PostScreenEvent.CommentPostButtonClicked)
+                    }) {
+                        Text(text = "Send")
+                    }
+                }
+            }
+            itemsIndexed(viewModel.state.comments) { index, item ->
+                Text(text = item.detail)
+            }
+        })
     }
 }
 
 @Composable
 fun PostScreenContent(post: SinglePost) {
     Column {
-
         UserCard(author = post.post.author)
         Text(text = post.post.content)
     }
