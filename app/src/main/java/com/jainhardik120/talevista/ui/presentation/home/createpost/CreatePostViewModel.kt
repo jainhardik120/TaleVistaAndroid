@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jainhardik120.talevista.data.remote.PostsApi
 import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.util.Resource
@@ -78,6 +77,7 @@ class CreatePostViewModel @Inject constructor(
                     }
                 }
             }
+
         }
     }
 }

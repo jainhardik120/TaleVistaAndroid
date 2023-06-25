@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ThumbDown
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Card
@@ -150,12 +152,17 @@ fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FilledTonalIconButton(
                     onClick = {
-                        onEvent(PostsScreenEvent.LikeButtonClicked(post._id))
+                        onEvent(PostsScreenEvent.LikeButtonClicked(post))
+                        post.likedByCurrentUser = true
                     },
                     modifier = Modifier.size(35.dp)
                 ) {
                     Icon(
-                        Icons.Outlined.ThumbUp,
+                        if (post.likedByCurrentUser) {
+                            Icons.Filled.ThumbUp
+                        } else {
+                            Icons.Outlined.ThumbUp
+                        },
                         contentDescription = "Like",
                         modifier = Modifier.size(20.dp)
                     )
@@ -167,12 +174,17 @@ fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit) {
                 )
                 FilledTonalIconButton(
                     onClick = {
-                        onEvent(PostsScreenEvent.DislikeButtonClicked(post._id))
+                        onEvent(PostsScreenEvent.DislikeButtonClicked(post))
+                        post.dislikedByCurrentUser = true
                     },
                     modifier = Modifier.size(35.dp)
                 ) {
                     Icon(
-                        Icons.Outlined.ThumbDown,
+                        if (post.dislikedByCurrentUser) {
+                            Icons.Filled.ThumbDown
+                        } else {
+                            Icons.Outlined.ThumbDown
+                        },
                         contentDescription = "Dislike",
                         modifier = Modifier.size(20.dp)
                     )

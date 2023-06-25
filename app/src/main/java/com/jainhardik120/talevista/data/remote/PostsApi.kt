@@ -64,6 +64,11 @@ interface PostsApi {
         @Path("postId") postId: String
     ): Response<SinglePost>
 
+    @DELETE("post/{postId}")
+    suspend fun deletePost(
+        @Path("postId") postId: String
+    ): Response<MessageResponse>
+
     @POST(BASE_URL)
     suspend fun createPost(
         @Body post: RequestBody

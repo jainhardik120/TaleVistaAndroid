@@ -1,15 +1,12 @@
 package com.jainhardik120.talevista.ui.presentation.home.posts
 
-import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
+import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -20,7 +17,6 @@ import javax.inject.Inject
 @HiltViewModel
 class PostsScreenViewModel @Inject constructor(private val postsRepository: PostsRepository) :
     ViewModel() {
-    var state by mutableStateOf(PostsScreenState())
 
     val postsPagingFlow = postsRepository.getPosts().cachedIn(viewModelScope)
 
@@ -29,22 +25,41 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
 
     private fun sendUiEvent(event: UiEvent) {
         viewModelScope.launch {
-            Log.d("TAG", "sendUiEvent: ")
             _uiEvent.send(event)
+        }
+    }
+
+    private fun <T> handleRepositoryResponse(
+        call: suspend () -> Resource<T>, onSuccess: (T) -> Unit = {}, onError: (String?) -> Unit = {
+            sendUiEvent(UiEvent.ShowSnackbar(message = it ?: "Unknown Error"))
+        }
+    ) {
+        viewModelScope.launch {
+            when (val response = call()) {
+                is Resource.Error -> {
+                    onError(response.message)
+                }
+
+                is Resource.Success -> {
+                    if (response.data != null) {
+                        onSuccess(response.data)
+                    }
+                }
+            }
         }
     }
 
     fun onEvent(event: PostsScreenEvent) {
         when (event) {
             is PostsScreenEvent.DislikeButtonClicked -> {
-                viewModelScope.launch {
-                    postsRepository.dislikePost(event.postId)
+                handleRepositoryResponse({ postsRepository.dislikePost(event.postId._id) }) {
+                    event.postId.dislikedByCurrentUser
                 }
             }
 
             is PostsScreenEvent.LikeButtonClicked -> {
-                viewModelScope.launch {
-                    postsRepository.likePost(event.postId)
+                handleRepositoryResponse({ postsRepository.likePost(event.postId._id) }) {
+                    event.postId.likedByCurrentUser = true
                 }
             }
 
@@ -55,12 +70,8 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
     }
 }
 
-data class PostsScreenState(
-    val posts: List<Post> = emptyList()
-)
-
 sealed class PostsScreenEvent {
-    data class LikeButtonClicked(val postId: String) : PostsScreenEvent()
-    data class DislikeButtonClicked(val postId: String) : PostsScreenEvent()
+    data class LikeButtonClicked(val postId: Post) : PostsScreenEvent()
+    data class DislikeButtonClicked(val postId: Post) : PostsScreenEvent()
     data class PostClicked(val postId: String) : PostsScreenEvent()
 }

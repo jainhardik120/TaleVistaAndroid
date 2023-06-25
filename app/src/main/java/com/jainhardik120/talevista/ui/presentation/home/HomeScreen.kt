@@ -147,7 +147,9 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
                     })
                 ) {
                     val postViewModel: PostViewModel = hiltViewModel()
-                    PostScreen(postViewModel)
+                    PostScreen(postViewModel) {
+                        navController.navigateUp()
+                    }
                 }
             }
         }

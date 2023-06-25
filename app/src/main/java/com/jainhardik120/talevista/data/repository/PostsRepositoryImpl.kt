@@ -15,7 +15,9 @@ import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.data.remote.dto.SinglePost
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.util.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -59,8 +61,10 @@ class PostsRepositoryImpl @Inject constructor(
 
     private suspend fun <T> handleApiCall(call: suspend () -> Response<T>): Resource<T> {
         return try {
-            val response = call.invoke()
-            response.toResource()
+            withContext(Dispatchers.IO) {
+                val response = call.invoke()
+                response.toResource()
+            }
         } catch (e: Exception) {
             Log.d(TAG, "handleApiCall: ${e.message}")
             Resource.Error(e.message ?: "Unknown Error")
@@ -82,6 +86,7 @@ class PostsRepositoryImpl @Inject constructor(
             }
         ).flow
     }
+
     override suspend fun createPost(
         content: String,
         category: String
@@ -141,5 +146,9 @@ class PostsRepositoryImpl @Inject constructor(
 
     override suspend fun undislikeComment(commentId: String): Resource<MessageResponse> {
         return handleApiCall { api.undislikeComment(commentId) }
+    }
+
+    override suspend fun deletePost(postId: String): Resource<MessageResponse> {
+        return handleApiCall { api.deletePost(postId) }
     }
 }
