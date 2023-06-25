@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,6 +36,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +48,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.util.UiEvent
 import java.time.Duration
@@ -53,6 +58,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun PostsScreen(viewModel: PostsScreenViewModel, onNavigate: (String) -> Unit) {
     LaunchedEffect(key1 = Unit, block = {
+        viewModel.getPosts()
         viewModel.uiEvent.collect {
             when (it) {
                 is UiEvent.Navigate -> {
@@ -65,8 +71,60 @@ fun PostsScreen(viewModel: PostsScreenViewModel, onNavigate: (String) -> Unit) {
             }
         }
     })
-    val posts = viewModel.postsPagingFlow.collectAsLazyPagingItems()
-    PostsContainer(posts = posts, onEvent = viewModel::onEvent)
+//    val posts = viewModel.postsPagingFlow.collectAsLazyPagingItems()
+//    PostsContainer(posts = posts, onEvent = viewModel::onEvent)
+
+
+    val lazyColumnListState = rememberLazyListState()
+
+    val shouldStartPaginate = remember {
+        derivedStateOf {
+            viewModel.canPaginate && (lazyColumnListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                ?: -9) >= (lazyColumnListState.layoutInfo.totalItemsCount - 6)
+        }
+    }
+
+    val posts by viewModel.posts.collectAsState()
+    LaunchedEffect(key1 = shouldStartPaginate.value, block = {
+        if (shouldStartPaginate.value && viewModel.listState == ListState.IDLE)
+            viewModel.getPosts()
+    })
+    LazyColumn(state = lazyColumnListState) {
+        itemsIndexed(posts) { index, item ->
+            PostCard(post = item, onEvent = viewModel::onEvent, index = index)
+        }
+        item {
+            when (viewModel.listState) {
+                ListState.LOADING -> {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                ListState.PAGINATING -> {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+
+                        CircularProgressIndicator()
+                    }
+                }
+
+                ListState.PAGINATION_EXHAUST -> {
+                    Text(text = "Paginating Exhaust")
+                }
+
+                else -> {
+
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -91,7 +149,7 @@ fun PostsContainer(posts: LazyPagingItems<Post>, onEvent: (PostsScreenEvent) -> 
                 items(count = posts.itemCount) { index ->
                     val post = posts[index]
                     if (post != null) {
-                        PostCard(post = post, onEvent = onEvent)
+                        PostCard(post = post, onEvent = onEvent, index = index)
                     }
                 }
                 item {
@@ -106,7 +164,7 @@ fun PostsContainer(posts: LazyPagingItems<Post>, onEvent: (PostsScreenEvent) -> 
 
 
 @Composable
-fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit) {
+fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit, index: Int) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
@@ -152,8 +210,7 @@ fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 FilledTonalIconButton(
                     onClick = {
-                        onEvent(PostsScreenEvent.LikeButtonClicked(post))
-                        post.likedByCurrentUser = true
+                        onEvent(PostsScreenEvent.LikeButtonClicked(index))
                     },
                     modifier = Modifier.size(35.dp)
                 ) {
@@ -174,8 +231,7 @@ fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit) {
                 )
                 FilledTonalIconButton(
                     onClick = {
-                        onEvent(PostsScreenEvent.DislikeButtonClicked(post))
-                        post.dislikedByCurrentUser = true
+                        onEvent(PostsScreenEvent.DislikeButtonClicked(index))
                     },
                     modifier = Modifier.size(35.dp)
                 ) {

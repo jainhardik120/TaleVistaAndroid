@@ -12,11 +12,14 @@ import com.jainhardik120.talevista.data.remote.dto.CommentsItem
 import com.jainhardik120.talevista.data.remote.dto.CreatePostResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
 import com.jainhardik120.talevista.data.remote.dto.Post
+import com.jainhardik120.talevista.data.remote.dto.Posts
 import com.jainhardik120.talevista.data.remote.dto.SinglePost
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.util.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
@@ -86,6 +89,22 @@ class PostsRepositoryImpl @Inject constructor(
             }
         ).flow
     }
+
+    override suspend fun getPostsCustom(page: Int, query: PostsQuery): Flow<Posts> = flow {
+        try {
+            emit(
+                api.getPosts(
+                    page = page,
+                    limit = 10,
+                    category = query.category,
+                    userId = query.userId
+                )
+            )
+
+        } catch (e: Exception) {
+            emit(Posts(0, emptyList(), 0, 0))
+        }
+    }.flowOn(Dispatchers.IO)
 
     override suspend fun createPost(
         content: String,

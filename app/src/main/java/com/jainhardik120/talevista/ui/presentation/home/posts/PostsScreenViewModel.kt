@@ -1,8 +1,13 @@
 package com.jainhardik120.talevista.ui.presentation.home.posts
 
+import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import com.jainhardik120.talevista.data.remote.PostsQuery
 import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
@@ -10,6 +15,9 @@ import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,10 +37,39 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
         }
     }
 
-    private fun <T> handleRepositoryResponse(
-        call: suspend () -> Resource<T>, onSuccess: (T) -> Unit = {}, onError: (String?) -> Unit = {
-            sendUiEvent(UiEvent.ShowSnackbar(message = it ?: "Unknown Error"))
+    private val _posts = MutableStateFlow<List<Post>>(emptyList())
+    val posts: StateFlow<List<Post>> get() = _posts.asStateFlow()
+
+    private var page by mutableStateOf(1)
+    var canPaginate by mutableStateOf(false)
+    var listState by mutableStateOf(ListState.IDLE)
+
+    fun getPosts() = viewModelScope.launch {
+        if (page == 1 || (page != 1 && canPaginate) && listState == ListState.IDLE) {
+            listState = if (page == 1) ListState.LOADING else ListState.PAGINATING
+            postsRepository.getPostsCustom(page, PostsQuery()).collect() {
+                if (it.currentPage != 0) {
+                    canPaginate = it.currentPage < it.totalPages
+                    if (page == 1) {
+                        _posts.value = it.posts
+                    } else {
+                        _posts.value = _posts.value + it.posts
+                    }
+                    listState = ListState.IDLE
+                    if (canPaginate) {
+                        page++
+                    }
+                } else {
+                    listState = if (page == 1) ListState.ERROR else ListState.PAGINATION_EXHAUST
+                }
+            }
         }
+    }
+
+    private fun <T> handleRepositoryResponse(
+        call: suspend () -> Resource<T>, onError: (String?) -> Unit = {
+            sendUiEvent(UiEvent.ShowSnackbar(message = it ?: "Unknown Error"))
+        }, onSuccess: (T) -> Unit = {}
     ) {
         viewModelScope.launch {
             when (val response = call()) {
@@ -42,6 +79,7 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
 
                 is Resource.Success -> {
                     if (response.data != null) {
+                        Log.d("TAG", "handleRepositoryResponse: Successful Execution")
                         onSuccess(response.data)
                     }
                 }
@@ -49,20 +87,44 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
         }
     }
 
+    private fun updatePostLikeDislikeAt(
+        index: Int = 0,
+        like: Boolean = false,
+        dislike: Boolean = false
+    ) {
+        val updatedPosts = _posts.value.toMutableList()
+        updatedPosts[index] = updatedPosts[index].copy(
+            dislikedByCurrentUser = dislike, likedByCurrentUser = like
+        )
+        _posts.value = updatedPosts
+    }
+
     fun onEvent(event: PostsScreenEvent) {
         when (event) {
             is PostsScreenEvent.DislikeButtonClicked -> {
-                handleRepositoryResponse({ postsRepository.dislikePost(event.postId._id) }) {
-                    event.postId.dislikedByCurrentUser
+                val postId = _posts.value[event.index]._id
+                if (_posts.value[event.index].dislikedByCurrentUser) {
+                    handleRepositoryResponse({ postsRepository.undislikePost(postId) }) {
+                        updatePostLikeDislikeAt(event.index, dislike = false)
+                    }
+                } else {
+                    handleRepositoryResponse({ postsRepository.dislikePost(postId) }) {
+                        updatePostLikeDislikeAt(event.index, dislike = true)
+                    }
                 }
             }
-
             is PostsScreenEvent.LikeButtonClicked -> {
-                handleRepositoryResponse({ postsRepository.likePost(event.postId._id) }) {
-                    event.postId.likedByCurrentUser = true
+                val postId = _posts.value[event.index]._id
+                if (_posts.value[event.index].likedByCurrentUser) {
+                    handleRepositoryResponse({ postsRepository.unlikePost(postId) }) {
+                        updatePostLikeDislikeAt(event.index, like = false)
+                    }
+                } else {
+                    handleRepositoryResponse({ postsRepository.likePost(postId) }) {
+                        updatePostLikeDislikeAt(event.index, like = true)
+                    }
                 }
             }
-
             is PostsScreenEvent.PostClicked -> {
                 sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.SinglePostScreen.withArgs(event.postId)))
             }
@@ -71,7 +133,15 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
 }
 
 sealed class PostsScreenEvent {
-    data class LikeButtonClicked(val postId: Post) : PostsScreenEvent()
-    data class DislikeButtonClicked(val postId: Post) : PostsScreenEvent()
+    data class LikeButtonClicked(val index: Int) : PostsScreenEvent()
+    data class DislikeButtonClicked(val index: Int) : PostsScreenEvent()
     data class PostClicked(val postId: String) : PostsScreenEvent()
+}
+
+enum class ListState {
+    IDLE,
+    LOADING,
+    PAGINATING,
+    ERROR,
+    PAGINATION_EXHAUST,
 }

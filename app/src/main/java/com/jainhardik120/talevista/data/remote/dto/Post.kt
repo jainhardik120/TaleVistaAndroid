@@ -7,10 +7,10 @@ data class Post(
     val category: String,
     val content: String,
     val createdAt: String,
-    var dislikedByCurrentUser: Boolean,
+    val dislikedByCurrentUser: Boolean,
     val dislikesCount: Int,
     val id: String,
-    var likedByCurrentUser: Boolean,
+    val likedByCurrentUser: Boolean,
     val likesCount: Int,
     val updatedAt: String
 )
