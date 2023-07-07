@@ -101,11 +101,21 @@ class LoginViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        if (response.data == true) {
+                        if (response.data?.first == true) {
                             sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
                         } else {
-                            googleIdToken = idToken
-                            sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.GoogleUsernameScreen.route))
+                            if (response.data?.second != null) {
+                                val userInfo = response.data.second
+                                googleIdToken = idToken
+                                if (userInfo != null) {
+                                    state = state.copy(
+                                        firstName = userInfo.firstName,
+                                        lastName = userInfo.lastName,
+                                        picture = userInfo.picture
+                                    )
+                                    sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.GoogleUsernameScreen.route))
+                                }
+                            }
                         }
                     }
                 }
@@ -190,7 +200,12 @@ class LoginViewModel @Inject constructor(
                                     when (val createAccountResponse =
                                         authController.createNewFromGoogleIdToken(
                                             googleIdToken,
-                                            state.registerUsername
+                                            state.registerUsername,
+                                            state.firstName,
+                                            state.lastName,
+                                            state.dob,
+                                            state.picture,
+                                            state.gender
                                         )) {
                                         is Resource.Error -> {
                                             sendUiEvent(
@@ -205,10 +220,16 @@ class LoginViewModel @Inject constructor(
                                         }
                                     }
                                 } else {
+
                                     when (val createAccountResponse = authController.createUser(
                                         state.registerEmail,
                                         state.registerPassword,
-                                        state.registerUsername
+                                        state.registerUsername,
+                                        state.firstName,
+                                        state.lastName,
+                                        state.dob,
+                                        state.picture,
+                                        state.gender
                                     )) {
                                         is Resource.Error -> {
                                             sendUiEvent(

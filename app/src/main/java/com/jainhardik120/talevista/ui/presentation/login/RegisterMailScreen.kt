@@ -1,9 +1,9 @@
 package com.jainhardik120.talevista.ui.presentation.login
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
@@ -28,14 +28,19 @@ fun RegisterMailScreen(
         Modifier
             .padding(horizontal = 8.dp)
             .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(64.dp))
+        Text(text = "TaleVista", style = MaterialTheme.typography.headlineLarge)
+        Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             value = state.registerEmail,
             onValueChange = { onEvent(LoginEvent.RegisterMailChanged(it)) },
             label = {
-                Text(text = "Email")
+                Text(text = "Email Address")
             },
             textStyle = MaterialTheme.typography.bodyMedium,
             keyboardOptions = KeyboardOptions.Default.copy(
@@ -50,7 +55,10 @@ fun RegisterMailScreen(
             singleLine = true
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { onEvent(LoginEvent.RegisterMailButtonClicked) }) {
+        Button(modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+            onClick = { onEvent(LoginEvent.RegisterMailButtonClicked) }) {
             Text(text = "Next")
         }
     }

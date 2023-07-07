@@ -35,6 +35,96 @@ fun RegisterUsernameScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
+            value = state.firstName,
+            onValueChange = { },
+            label = {
+                Text(text = "First Name")
+            },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Text
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+
+                }
+            ),
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = state.lastName,
+            onValueChange = { },
+            label = {
+                Text(text = "Last Name")
+            },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Text
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+
+                }
+            ),
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = state.gender,
+            onValueChange = { },
+            label = {
+                Text(text = "Gender")
+            },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Text
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+
+                }
+            ),
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = state.picture,
+            onValueChange = { },
+            label = {
+                Text(text = "Picture")
+            },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Text
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+
+                }
+            ),
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = state.dob,
+            onValueChange = { },
+            label = {
+                Text(text = "Date Of Birth")
+            },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Text
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+
+                }
+            ),
+            singleLine = true
+        )
+        OutlinedTextField(
             value = state.registerUsername,
             onValueChange = { onEvent(LoginEvent.RegisterUserNameChanged(it)) },
             label = {

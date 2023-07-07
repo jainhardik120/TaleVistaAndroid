@@ -32,6 +32,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -199,12 +200,21 @@ fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit, index: Int) {
                     )
                     TimeAgoText(dateTimeString = post.createdAt)
                 }
+                Spacer(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+                SuggestionChip(onClick = {}, label = {
+                    Text(text = post.category)
+                })
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = post.content.take(200),
+                text = post.content,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 4
             )
             Spacer(modifier = Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {

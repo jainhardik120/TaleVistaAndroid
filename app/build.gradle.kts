@@ -95,4 +95,7 @@ dependencies {
 
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.paging.compose)
+
+    implementation("com.exyte:animated-navigation-bar:1.0.0")
+
 }

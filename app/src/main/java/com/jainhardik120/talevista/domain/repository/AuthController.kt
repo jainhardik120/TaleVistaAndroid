@@ -1,5 +1,6 @@
 package com.jainhardik120.talevista.domain.repository
 
+import com.jainhardik120.talevista.data.repository.AuthControllerImpl
 import com.jainhardik120.talevista.util.Resource
 
 interface AuthController {
@@ -14,9 +15,26 @@ interface AuthController {
 
     suspend fun checkUsername(username: String): Resource<Pair<Boolean, List<String>>>
 
-    suspend fun createUser(email: String, password: String, username: String): Resource<String>
+    suspend fun createUser(
+        email: String,
+        password: String,
+        username: String,
+        firstName: String,
+        lastName: String,
+        dob: String,
+        picture: String,
+        gender: String
+    ): Resource<String>
 
-    suspend fun useGoogleIdToken(idToken: String): Resource<Boolean>
+    suspend fun useGoogleIdToken(idToken: String): Resource<Pair<Boolean, AuthControllerImpl.GoogleNewUserResponse?>>
 
-    suspend fun createNewFromGoogleIdToken(idToken: String, username: String): Resource<Boolean>
+    suspend fun createNewFromGoogleIdToken(
+        idToken: String,
+        username: String,
+        firstName: String,
+        lastName: String,
+        dob: String,
+        picture: String,
+        gender: String
+    ): Resource<Boolean>
 }

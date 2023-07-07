@@ -8,7 +8,12 @@ data class LoginState(
     val registerUsername: String = "",
     val currPage: LoginPage = LoginPage.ExistingAccount,
     val recommendedUserNames: List<String> = emptyList(),
-    val showUsernames: Boolean = false
+    val showUsernames: Boolean = false,
+    val firstName: String = "",
+    val lastName: String = "",
+    val picture: String = "",
+    val dob: String = "",
+    val gender: String = ""
 )
 
 enum class LoginPage{

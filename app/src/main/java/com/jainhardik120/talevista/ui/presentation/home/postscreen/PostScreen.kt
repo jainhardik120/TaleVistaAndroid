@@ -16,13 +16,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ThumbDown
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Report
+import androidx.compose.material.icons.outlined.ThumbDown
+import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -64,125 +71,184 @@ fun PostScreen(viewModel: PostViewModel, navigateUp: () -> Boolean) {
     val state = viewModel.state
     val post = viewModel.state.post
     if (post != null) {
-        LazyColumn(content = {
-            item {
-                val author = post.post.author
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Image(
-                        imageVector = Icons.Outlined.Person,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(72.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    Column(
-                        modifier = Modifier.padding(start = 16.dp)
+        Box(modifier = Modifier.fillMaxSize()) {
+//            Image(
+//                painter = painterResource(R.drawable.horror_2),
+//                contentDescription = "horror_bg",
+//                contentScale = ContentScale.Crop,
+//                alpha = 0.9f
+//            )
+            LazyColumn(content = {
+                item {
+                    val author = post.post.author
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+
+                        modifier = Modifier.padding(16.dp)
                     ) {
-                        Text(
-                            text = "${author.first_name} ${author.last_name}",
-                            style = MaterialTheme.typography.headlineLarge
+                        Image(
+                            imageVector = Icons.Outlined.Person,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
                         )
-                        Text(
-                            text = author.username,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    Spacer(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                    )
-                    var expanded by remember { mutableStateOf(false) }
-                    Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
-                        IconButton(onClick = { expanded = true }) {
-                            Icon(
-                                Icons.Default.MoreVert,
-                                contentDescription = "Localized description"
+                        Column(
+                            modifier = Modifier.padding(start = 16.dp)
+                        ) {
+                            Text(
+                                text = "${author.first_name} ${author.last_name}",
+                                style = MaterialTheme.typography.headlineLarge
+                            )
+                            Text(
+                                text = author.username,
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            if (state.isAuthorUser) {
+                        Spacer(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        )
+                        var expanded by remember { mutableStateOf(false) }
+                        Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
+                            IconButton(onClick = { expanded = true }) {
+                                Icon(
+                                    Icons.Default.MoreVert,
+                                    contentDescription = "Localized description"
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                if (state.isAuthorUser) {
 
-                                DropdownMenuItem(
-                                    text = { Text("Edit") },
-                                    onClick = {
-                                        expanded = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Outlined.Edit,
-                                            contentDescription = null
-                                        )
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Delete") },
-                                    onClick = {
-                                        expanded = false
-                                        viewModel.onEvent(PostScreenEvent.DeletePostButtonClicked)
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Outlined.Delete,
-                                            contentDescription = null
-                                        )
-                                    }
-                                )
-                            } else {
-                                DropdownMenuItem(
-                                    text = { Text("Report") },
-                                    onClick = {
-                                        expanded = false
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Outlined.Report,
-                                            contentDescription = null
-                                        )
-                                    }
-                                )
+                                    DropdownMenuItem(
+                                        text = { Text("Edit") },
+                                        onClick = {
+                                            expanded = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Outlined.Edit,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Delete") },
+                                        onClick = {
+                                            expanded = false
+                                            viewModel.onEvent(PostScreenEvent.DeletePostButtonClicked)
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Outlined.Delete,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    )
+                                } else {
+                                    DropdownMenuItem(
+                                        text = { Text("Report") },
+                                        onClick = {
+                                            expanded = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Outlined.Report,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    )
 
+                                }
                             }
                         }
                     }
                 }
-            }
-            item {
-                Text(
-                    text = post.post.content, modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-                )
-            }
-            item {
-                Row {
-                    BasicTextField(
-                        value = state.newCommentContent,
-                        onValueChange = { viewModel.onEvent(PostScreenEvent.NewCommentChanged(it)) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize()
-                            .padding(32.dp),
-                        cursorBrush = SolidColor(LocalContentColor.current),
-                        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current)
+                item {
+                    Text(
+                        text = post.post.content, modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
                     )
-                    Button(onClick = {
-                        viewModel.onEvent(PostScreenEvent.CommentPostButtonClicked)
-                    }) {
-                        Text(text = "Send")
+                }
+                item {
+                    Row {
+                        BasicTextField(
+                            value = state.newCommentContent,
+                            onValueChange = { viewModel.onEvent(PostScreenEvent.NewCommentChanged(it)) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxSize()
+                                .padding(32.dp),
+                            cursorBrush = SolidColor(LocalContentColor.current),
+                            textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current)
+                        )
+                        Button(onClick = {
+                            viewModel.onEvent(PostScreenEvent.CommentPostButtonClicked)
+                        }) {
+                            Text(text = "Send")
+                        }
                     }
                 }
-            }
-            itemsIndexed(viewModel.state.comments) { index, item ->
-                Text(text = item.detail)
-            }
-        })
+                itemsIndexed(viewModel.state.comments) { index, item ->
+                    Card(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp)) {
+                        Row {
+                            Image(Icons.Filled.Person, contentDescription = "Person Icon")
+                            Column {
+                                Text(text = item.author.username)
+                                Text(text = item.detail)
+                            }
+                        }
+                        Row {
+                            FilledTonalIconButton(
+                                onClick = {
+
+                                },
+                                modifier = Modifier.size(35.dp)
+                            ) {
+                                Icon(
+                                    if (post.likedByCurrentUser) {
+                                        Icons.Filled.ThumbUp
+                                    } else {
+                                        Icons.Outlined.ThumbUp
+                                    },
+                                    contentDescription = "Like",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Text(
+                                text = item.likesCount.toString(),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                            FilledTonalIconButton(
+                                onClick = {
+
+                                },
+                                modifier = Modifier.size(35.dp)
+                            ) {
+                                Icon(
+                                    if (post.dislikedByCurrentUser) {
+                                        Icons.Filled.ThumbDown
+                                    } else {
+                                        Icons.Outlined.ThumbDown
+                                    },
+                                    contentDescription = "Dislike",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            })
+        }
     }
 }

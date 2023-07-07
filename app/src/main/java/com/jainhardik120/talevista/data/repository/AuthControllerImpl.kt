@@ -141,15 +141,26 @@ class AuthControllerImpl @Inject constructor(
     override suspend fun createUser(
         email: String,
         password: String,
-        username: String
+        username: String,
+        firstName: String,
+        lastName: String,
+        dob: String,
+        picture: String,
+        gender: String
     ): Resource<String> {
         return try {
             val loginResponse = api.createUser(
                 RequestBody(
                     Pair("email", email),
                     Pair("password", password),
-                    Pair("username", username)
-                )
+                    Pair("username", username),
+                    Pair("first_name", firstName),
+                    Pair("last_name", lastName),
+                    Pair("picture", picture),
+                    Pair("dob", dob),
+                    Pair("gender", gender),
+
+                    )
             )
             if (loginResponse.isSuccessful) {
                 storeToken(loginResponse.body()?.token?:"null")
@@ -169,7 +180,13 @@ class AuthControllerImpl @Inject constructor(
         }
     }
 
-    override suspend fun useGoogleIdToken(idToken: String): Resource<Boolean> {
+    data class GoogleNewUserResponse(
+        val firstName: String,
+        val lastName: String,
+        val picture: String
+    )
+
+    override suspend fun useGoogleIdToken(idToken: String): Resource<Pair<Boolean, GoogleNewUserResponse?>> {
         return try {
             val loginResponse = api.authorizeGoogleIdToken(
                 RequestBody(
@@ -179,14 +196,22 @@ class AuthControllerImpl @Inject constructor(
             if (loginResponse.isSuccessful) {
                 storeToken(loginResponse.body()?.token ?: "null")
                 storeUserId(loginResponse.body()?.userId ?: "null")
-                Resource.Success(true)
+                Resource.Success(Pair(true, null))
             } else {
                 if (loginResponse.code() == 400) {
                     val errorBody = loginResponse.errorBody()?.string()
                     val jsonBody = errorBody?.let { JSONObject(it) }
                     if (jsonBody != null) {
-                        if (jsonBody.getString("error") == "Username required") {
-                            Resource.Success(false)
+                        if (jsonBody.getString("error") == "Username Required") {
+                            Resource.Success(
+                                Pair(
+                                    false, GoogleNewUserResponse(
+                                        jsonBody.getString("first_name"),
+                                        jsonBody.getString("last_name"),
+                                        jsonBody.getString("picture"),
+                                    )
+                                )
+                            )
                         } else {
                             Resource.Error(message = jsonBody.getString("error"))
                         }
@@ -211,13 +236,23 @@ class AuthControllerImpl @Inject constructor(
 
     override suspend fun createNewFromGoogleIdToken(
         idToken: String,
-        username: String
+        username: String,
+        firstName: String,
+        lastName: String,
+        dob: String,
+        picture: String,
+        gender: String
     ): Resource<Boolean> {
         return try {
             val response = api.createNewFromGoogleIdToken(
                 RequestBody(
                     Pair("idToken", idToken),
-                    Pair("username", username)
+                    Pair("username", username),
+                    Pair("first_name", firstName),
+                    Pair("last_name", lastName),
+                    Pair("picture", picture),
+                    Pair("dob", dob),
+                    Pair("gender", gender),
                 )
             )
             if (response.isSuccessful) {
