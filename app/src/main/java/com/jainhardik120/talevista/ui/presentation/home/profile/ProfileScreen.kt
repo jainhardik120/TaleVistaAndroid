@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 
+const val SELF_USER = "self_user"
+
 @Composable
 fun ProfileScreen(viewModel: ProfileScreenViewModel) {
     val state = viewModel.state

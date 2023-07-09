@@ -7,10 +7,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jainhardik120.talevista.data.remote.dto.CommentsItem
-import com.jainhardik120.talevista.data.remote.dto.SinglePost
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
+import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -94,20 +93,18 @@ class PostViewModel @Inject constructor(
                 handleRepositoryResponse({ postsRepository.deletePost(postId) },
                     { sendUiEvent(UiEvent.Navigate("NAVIGATE_BACK")) })
             }
+
+            PostScreenEvent.PostAuthorClicked -> {
+                sendUiEvent(
+                    UiEvent.Navigate(
+                        HomeScreenRoutes.ProfileScreen.withArgs(
+                            state.post?.post?.author?._id ?: ""
+                        )
+                    )
+                )
+            }
         }
 
     }
 }
 
-data class PostState(
-    val post: SinglePost? = null,
-    val isAuthorUser: Boolean = false,
-    val comments: List<CommentsItem> = emptyList(),
-    val newCommentContent: String = ""
-)
-
-sealed class PostScreenEvent {
-    object CommentPostButtonClicked : PostScreenEvent()
-    object DeletePostButtonClicked : PostScreenEvent()
-    data class NewCommentChanged(val string: String) : PostScreenEvent()
-}

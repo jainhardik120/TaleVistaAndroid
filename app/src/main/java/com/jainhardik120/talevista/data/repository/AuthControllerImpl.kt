@@ -3,7 +3,9 @@ package com.jainhardik120.talevista.data.repository
 import android.content.SharedPreferences
 import android.util.Log
 import com.jainhardik120.talevista.data.remote.TaleVistaApi
+import com.jainhardik120.talevista.data.remote.dto.LoginResponse
 import com.jainhardik120.talevista.domain.repository.AuthController
+import com.jainhardik120.talevista.domain.repository.USERPREFERENCES
 import com.jainhardik120.talevista.util.Resource
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
@@ -24,15 +26,17 @@ class AuthControllerImpl @Inject constructor(
         private const val USER_ID_KEY = "USER_ID"
     }
 
-    private fun storeToken(token : String){
-        with(sharedPreferences.edit()){
-            putString(TOKEN_KEY, token)
-        }.apply()
-    }
-    private fun storeUserId(userId : String){
-        with(sharedPreferences.edit()){
-            putString(USER_ID_KEY, userId)
-        }.apply()
+    private fun storeUserInfo(loginResponse: LoginResponse?) {
+        if (loginResponse != null) {
+            with(sharedPreferences.edit()) {
+                putString(USER_ID_KEY, loginResponse.userId)
+                putString(USERPREFERENCES.EMAIL.key, loginResponse.email)
+                putString(USERPREFERENCES.FIRST_NAME.key, loginResponse.firstName)
+                putString(USERPREFERENCES.LAST_NAME.key, loginResponse.lastName)
+                putString(USERPREFERENCES.PICTURE.key, loginResponse.picture)
+                putString(TOKEN_KEY, loginResponse.token)
+            }.apply()
+        }
     }
 
     private fun RequestBody(vararg pairs: Pair<String, String>): RequestBody {
@@ -42,13 +46,13 @@ class AuthControllerImpl @Inject constructor(
 
 
     override fun isLoggedIn(): Boolean {
-        val token = sharedPreferences.getString(TOKEN_KEY, "null")
+        val token = sharedPreferences.getString(TOKEN_KEY, null)
         return (token != null && token != "null")
     }
 
     override fun getToken(): String? {
         return if (isLoggedIn()) {
-            sharedPreferences.getString(TOKEN_KEY, "null")
+            sharedPreferences.getString(TOKEN_KEY, null)
         } else {
             null
         }
@@ -56,7 +60,15 @@ class AuthControllerImpl @Inject constructor(
 
     override fun getUserId(): String? {
         return if (isLoggedIn()) {
-            sharedPreferences.getString(USER_ID_KEY, "null")
+            sharedPreferences.getString(USER_ID_KEY, null)
+        } else {
+            null
+        }
+    }
+
+    override fun getUserInfo(key: USERPREFERENCES): String? {
+        return if (isLoggedIn()) {
+            sharedPreferences.getString(key.key, null)
         } else {
             null
         }
@@ -71,8 +83,7 @@ class AuthControllerImpl @Inject constructor(
                 )
             )
             if (loginResponse.isSuccessful) {
-                storeToken(loginResponse.body()?.token?:"null")
-                storeUserId(loginResponse.body()?.userId?:"null")
+                storeUserInfo(loginResponse.body())
                 Resource.Success(loginResponse.body()?.userId)
             } else {
                 Log.d(TAG, "loginWithEmailPassword: Entered Login Response Error Body")
@@ -163,8 +174,7 @@ class AuthControllerImpl @Inject constructor(
                     )
             )
             if (loginResponse.isSuccessful) {
-                storeToken(loginResponse.body()?.token?:"null")
-                storeUserId(loginResponse.body()?.userId?:"null")
+                storeUserInfo(loginResponse.body())
                 Resource.Success(loginResponse.body()?.userId)
             } else {
                 val errorBody = loginResponse.errorBody()?.string()
@@ -194,8 +204,7 @@ class AuthControllerImpl @Inject constructor(
                 )
             )
             if (loginResponse.isSuccessful) {
-                storeToken(loginResponse.body()?.token ?: "null")
-                storeUserId(loginResponse.body()?.userId ?: "null")
+                storeUserInfo(loginResponse.body())
                 Resource.Success(Pair(true, null))
             } else {
                 if (loginResponse.code() == 400) {
@@ -256,8 +265,7 @@ class AuthControllerImpl @Inject constructor(
                 )
             )
             if (response.isSuccessful) {
-                storeToken(response.body()?.token ?: "null")
-                storeUserId(response.body()?.userId ?: "null")
+                storeUserInfo(response.body())
                 Resource.Success(true)
             } else {
                 val errorBody = response.errorBody()?.string()

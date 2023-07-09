@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import com.jainhardik120.talevista.data.remote.PostsQuery
 import com.jainhardik120.talevista.data.remote.dto.Post
+import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
 import com.jainhardik120.talevista.util.Resource
@@ -23,7 +24,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class PostsScreenViewModel @Inject constructor(private val postsRepository: PostsRepository) :
+class PostsScreenViewModel @Inject constructor(
+    private val postsRepository: PostsRepository,
+    private val authController: AuthController
+) :
     ViewModel() {
 
     val postsPagingFlow = postsRepository.getPosts().cachedIn(viewModelScope)
@@ -125,17 +129,26 @@ class PostsScreenViewModel @Inject constructor(private val postsRepository: Post
                     }
                 }
             }
+
             is PostsScreenEvent.PostClicked -> {
                 sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.SinglePostScreen.withArgs(event.postId)))
             }
+
+            is PostsScreenEvent.PostAuthorClicked -> {
+                sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.ProfileScreen.withArgs(event.authorId)))
+            }
+
+            PostsScreenEvent.ProfileLogoClicked -> {
+                sendUiEvent(
+                    UiEvent.Navigate(
+                        HomeScreenRoutes.ProfileScreen.withArgs(
+                            authController.getUserId() ?: ""
+                        )
+                    )
+                )
+            }
         }
     }
-}
-
-sealed class PostsScreenEvent {
-    data class LikeButtonClicked(val index: Int) : PostsScreenEvent()
-    data class DislikeButtonClicked(val index: Int) : PostsScreenEvent()
-    data class PostClicked(val postId: String) : PostsScreenEvent()
 }
 
 enum class ListState {

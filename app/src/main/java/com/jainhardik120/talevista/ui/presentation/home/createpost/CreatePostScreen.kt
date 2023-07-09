@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.jainhardik120.talevista.ui.presentation.home.HomeState
 import com.jainhardik120.talevista.util.UiEvent
 
@@ -43,7 +44,8 @@ import com.jainhardik120.talevista.util.UiEvent
 fun CreatePostScreen(
     viewModel: CreatePostViewModel,
     sharedState: HomeState,
-    hostState: SnackbarHostState
+    hostState: SnackbarHostState,
+    navController: NavController
 ) {
     var dropDownExpanded by remember {
         mutableStateOf(false)

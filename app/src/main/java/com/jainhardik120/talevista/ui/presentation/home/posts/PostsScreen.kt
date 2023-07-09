@@ -3,7 +3,6 @@ package com.jainhardik120.talevista.ui.presentation.home.posts
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,22 +17,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbDown
 import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,26 +48,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import coil.compose.AsyncImage
 import com.jainhardik120.talevista.data.remote.dto.Post
+import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
 import com.jainhardik120.talevista.util.UiEvent
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostsScreen(viewModel: PostsScreenViewModel, onNavigate: (String) -> Unit) {
+fun PostsScreen(viewModel: PostsScreenViewModel, navController: NavController) {
     LaunchedEffect(key1 = Unit, block = {
         viewModel.getPosts()
         viewModel.uiEvent.collect {
             when (it) {
                 is UiEvent.Navigate -> {
-                    onNavigate(it.route)
+                    navController.navigate(it.route)
                 }
 
                 is UiEvent.ShowSnackbar -> {
@@ -72,9 +81,6 @@ fun PostsScreen(viewModel: PostsScreenViewModel, onNavigate: (String) -> Unit) {
             }
         }
     })
-//    val posts = viewModel.postsPagingFlow.collectAsLazyPagingItems()
-//    PostsContainer(posts = posts, onEvent = viewModel::onEvent)
-
 
     val lazyColumnListState = rememberLazyListState()
 
@@ -90,42 +96,85 @@ fun PostsScreen(viewModel: PostsScreenViewModel, onNavigate: (String) -> Unit) {
         if (shouldStartPaginate.value && viewModel.listState == ListState.IDLE)
             viewModel.getPosts()
     })
-    LazyColumn(state = lazyColumnListState) {
-        itemsIndexed(posts) { index, item ->
-            PostCard(post = item, onEvent = viewModel::onEvent, index = index)
+
+    val topAppBarScrollBehavior =
+        TopAppBarDefaults.pinnedScrollBehavior()
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(text = "TaleVista")
+                },
+                scrollBehavior = topAppBarScrollBehavior,
+                navigationIcon = {
+                    IconButton(onClick = {
+                        viewModel.onEvent(PostsScreenEvent.ProfileLogoClicked)
+                    }) {
+                        Box(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(100))
+                        ) {
+                            AsyncImage(
+                                model = "https://lh3.googleusercontent.com/a/AAcHTtf2DBJ_tpaNOR8ErUypsremX--F1LbcPihqEYObeU8iShJJ=s288-c-no",
+                                contentDescription = "ProfileIcon"
+                            )
+                        }
+                    }
+                }
+            )
+        },
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                navController.navigate(HomeScreenRoutes.CreatePostScreen.route)
+            }) {
+                Icon(Icons.Rounded.Create, contentDescription = "Create Icon")
+            }
         }
-        item {
-            when (viewModel.listState) {
-                ListState.LOADING -> {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator()
+    ) { paddingValues ->
+        LazyColumn(state = lazyColumnListState, modifier = Modifier.padding(paddingValues)) {
+            itemsIndexed(posts) { index, item ->
+                PostCard(post = item, onEvent = viewModel::onEvent, index = index)
+            }
+            item {
+                when (viewModel.listState) {
+                    ListState.LOADING -> {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
-                }
 
-                ListState.PAGINATING -> {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    ListState.PAGINATING -> {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
 
-                        CircularProgressIndicator()
+                            CircularProgressIndicator()
+                        }
                     }
-                }
 
-                ListState.PAGINATION_EXHAUST -> {
-                    Text(text = "Paginating Exhaust")
-                }
+                    ListState.PAGINATION_EXHAUST -> {
+                        Text(text = "Paginating Exhaust")
+                    }
 
-                else -> {
+                    else -> {
 
+                    }
                 }
             }
         }
     }
+
+
 }
 
 @Composable
@@ -180,14 +229,18 @@ fun PostCard(post: Post, onEvent: (PostsScreenEvent) -> Unit, index: Int) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
-                Image(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape),
-                    imageVector = Icons.Filled.Person,
-                    contentDescription = post.author.username,
-                )
-
+                Box(modifier = Modifier
+                    .size(40.dp)
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(100))
+                    .clickable {
+                        onEvent(PostsScreenEvent.PostAuthorClicked(post.author._id))
+                    }) {
+                    AsyncImage(
+                        model = post.author.picture,
+                        contentDescription = "ProfileIcon"
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .weight(1f)

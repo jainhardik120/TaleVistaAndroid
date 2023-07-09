@@ -83,14 +83,3 @@ class CreatePostViewModel @Inject constructor(
 }
 
 
-data class CreatePostState(
-    val selectedCategory: Int = 0,
-    val postContent: String = "",
-    val categories: List<CategoriesItem> = emptyList()
-)
-
-sealed class CreatePostsEvent {
-    data class CategoryChanged(val index: Int) : CreatePostsEvent()
-    data class PostContentChanged(val string: String) : CreatePostsEvent()
-    object SendButtonClicked : CreatePostsEvent()
-}
