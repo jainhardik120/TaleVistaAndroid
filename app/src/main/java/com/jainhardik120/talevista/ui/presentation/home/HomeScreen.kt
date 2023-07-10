@@ -69,7 +69,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
                     )
                 ) {
                     val profileScreenViewModel: ProfileScreenViewModel = hiltViewModel()
-                    ProfileScreen(profileScreenViewModel)
+                    ProfileScreen(profileScreenViewModel, navController)
                 }
                 composable(route = HomeScreenRoutes.SearchScreen.route) {
 

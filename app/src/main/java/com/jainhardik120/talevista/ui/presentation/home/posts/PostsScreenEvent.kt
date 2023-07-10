@@ -1,9 +1,10 @@
 package com.jainhardik120.talevista.ui.presentation.home.posts
 
+import com.jainhardik120.talevista.data.remote.dto.Post
+import com.jainhardik120.talevista.ui.components.PostCardEvent
+
 sealed class PostsScreenEvent {
-    data class LikeButtonClicked(val index: Int) : PostsScreenEvent()
-    data class DislikeButtonClicked(val index: Int) : PostsScreenEvent()
-    data class PostClicked(val postId: String) : PostsScreenEvent()
     object ProfileLogoClicked : PostsScreenEvent()
-    data class PostAuthorClicked(val authorId: String) : PostsScreenEvent()
+    data class CardEvent(val event: PostCardEvent, val post: Post, val index: Int) :
+        PostsScreenEvent()
 }

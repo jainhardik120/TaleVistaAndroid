@@ -11,6 +11,7 @@ import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.domain.repository.UserPreferences
+import com.jainhardik120.talevista.ui.components.PostCardEvent
 import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
@@ -108,41 +109,46 @@ class PostsScreenViewModel @Inject constructor(
         _posts.value = updatedPosts
     }
 
-    fun onEvent(event: PostsScreenEvent) {
+    private fun onPostCardEvent(event: PostCardEvent, post: Post, index: Int) {
         when (event) {
-            is PostsScreenEvent.DislikeButtonClicked -> {
-                val postId = _posts.value[event.index]._id
-                if (_posts.value[event.index].dislikedByCurrentUser) {
+            PostCardEvent.AuthorClicked -> {
+                sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.ProfileScreen.withArgs(post.author._id)))
+            }
+
+            PostCardEvent.DislikeButtonClicked -> {
+                val postId = _posts.value[index]._id
+                if (_posts.value[index].dislikedByCurrentUser) {
                     handleRepositoryResponse({ postsRepository.undislikePost(postId) }) {
-                        updatePostLikeDislikeAt(event.index, dislike = false)
+                        updatePostLikeDislikeAt(index, dislike = false)
                     }
                 } else {
                     handleRepositoryResponse({ postsRepository.dislikePost(postId) }) {
-                        updatePostLikeDislikeAt(event.index, dislike = true)
+                        updatePostLikeDislikeAt(index, dislike = true)
                     }
                 }
             }
-            is PostsScreenEvent.LikeButtonClicked -> {
-                val postId = _posts.value[event.index]._id
-                if (_posts.value[event.index].likedByCurrentUser) {
+
+            PostCardEvent.LikeButtonClicked -> {
+                val postId = post._id
+                if (_posts.value[index].likedByCurrentUser) {
                     handleRepositoryResponse({ postsRepository.unlikePost(postId) }) {
-                        updatePostLikeDislikeAt(event.index, like = false)
+                        updatePostLikeDislikeAt(index, like = false)
                     }
                 } else {
                     handleRepositoryResponse({ postsRepository.likePost(postId) }) {
-                        updatePostLikeDislikeAt(event.index, like = true)
+                        updatePostLikeDislikeAt(index, like = true)
                     }
                 }
             }
 
-            is PostsScreenEvent.PostClicked -> {
-                sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.SinglePostScreen.withArgs(event.postId)))
+            PostCardEvent.PostClicked -> {
+                sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.SinglePostScreen.withArgs(post._id)))
             }
+        }
+    }
 
-            is PostsScreenEvent.PostAuthorClicked -> {
-                sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.ProfileScreen.withArgs(event.authorId)))
-            }
-
+    fun onEvent(event: PostsScreenEvent) {
+        when (event) {
             PostsScreenEvent.ProfileLogoClicked -> {
                 sendUiEvent(
                     UiEvent.Navigate(
@@ -151,6 +157,10 @@ class PostsScreenViewModel @Inject constructor(
                         )
                     )
                 )
+            }
+
+            is PostsScreenEvent.CardEvent -> {
+                onPostCardEvent(event.event, event.post, event.index)
             }
         }
     }

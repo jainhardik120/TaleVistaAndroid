@@ -2,10 +2,14 @@ package com.jainhardik120.talevista.data.repository
 
 import android.util.Log
 import com.jainhardik120.talevista.data.remote.UsersApi
+import com.jainhardik120.talevista.data.remote.dto.Posts
 import com.jainhardik120.talevista.data.remote.dto.User
 import com.jainhardik120.talevista.domain.repository.UserRepository
 import com.jainhardik120.talevista.util.Resource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
@@ -70,4 +74,20 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun getByUserId(userId: String): Resource<User> {
         return handleApiCall { api.getByUserId(userId) }
     }
+
+    override suspend fun getPostsLikedByUser(userId: String, page: Int): Flow<Posts> = flow {
+        try {
+            Log.d(TAG, "getPostsLikedByUser: Repository Method Called")
+            emit(
+                api.getLikedPosts(
+                    page = page,
+                    limit = 10,
+                    userId = userId
+                )
+            )
+        } catch (e: Exception) {
+            Log.d(TAG, "${e.printStackTrace()}")
+            emit(Posts(0, emptyList(), 0, 0))
+        }
+    }.flowOn(Dispatchers.IO)
 }
