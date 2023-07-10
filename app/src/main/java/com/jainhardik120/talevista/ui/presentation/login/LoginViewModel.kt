@@ -41,20 +41,34 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private lateinit var oneTapClient: SignInClient
-
-    private fun onLoginClicked(emailAddress: String, password: String) {
+    private fun <T> handleRepositoryResponse(
+        call: suspend () -> Resource<T>, onSuccess: (T) -> Unit = {}, onError: (String?) -> Unit = {
+            sendUiEvent(UiEvent.ShowSnackbar(message = it ?: "Unknown Error"))
+        }
+    ) {
         viewModelScope.launch {
-            when (val loginResult = authController.loginWithEmailPassword(emailAddress, password)) {
+            when (val response = call()) {
                 is Resource.Error -> {
-                    sendUiEvent(UiEvent.ShowSnackbar(loginResult.message ?: "Unknown Error"))
+                    onError(response.message)
                 }
 
                 is Resource.Success -> {
-                    sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
+                    if (response.data != null) {
+                        onSuccess(response.data)
+                    }
                 }
             }
         }
+    }
+
+    private lateinit var oneTapClient: SignInClient
+
+    private fun onLoginClicked(emailAddress: String, password: String) {
+        handleRepositoryResponse(call = {
+            authController.loginWithEmailPassword(emailAddress, password)
+        }, onSuccess = {
+            sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
+        })
     }
 
     private fun launchOneTapIntent(
@@ -94,32 +108,26 @@ class LoginViewModel @Inject constructor(
         val credential = oneTapClient.getSignInCredentialFromIntent(result.data)
         val idToken = credential.googleIdToken
         if (idToken != null) {
-            viewModelScope.launch {
-                when (val response = authController.useGoogleIdToken(idToken)) {
-                    is Resource.Error -> {
-                        sendUiEvent(UiEvent.ShowSnackbar(response.message ?: "Unknown Error"))
-                    }
-
-                    is Resource.Success -> {
-                        if (response.data?.first == true) {
-                            sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
-                        } else {
-                            if (response.data?.second != null) {
-                                val userInfo = response.data.second
-                                googleIdToken = idToken
-                                if (userInfo != null) {
-                                    state = state.copy(
-                                        firstName = userInfo.firstName,
-                                        lastName = userInfo.lastName,
-                                        picture = userInfo.picture
-                                    )
-                                    sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.GoogleUsernameScreen.route))
-                                }
-                            }
+            handleRepositoryResponse(call = {
+                authController.useGoogleIdToken(idToken)
+            }, onSuccess = { data ->
+                if (data.first) {
+                    sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
+                } else {
+                    if (data.second != null) {
+                        val userInfo = data.second
+                        googleIdToken = idToken
+                        if (userInfo != null) {
+                            state = state.copy(
+                                firstName = userInfo.firstName,
+                                lastName = userInfo.lastName,
+                                picture = userInfo.picture
+                            )
+                            sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.GoogleUsernameScreen.route))
                         }
                     }
                 }
-            }
+            })
         } else {
             sendUiEvent(UiEvent.ShowSnackbar("Can't Login with Google"))
         }
@@ -160,21 +168,15 @@ class LoginViewModel @Inject constructor(
             }
 
             is LoginEvent.RegisterMailButtonClicked -> {
-                viewModelScope.launch {
-                    when (val response = authController.checkEmail(state.registerEmail)) {
-                        is Resource.Error -> {
-                            sendUiEvent(UiEvent.ShowSnackbar(response.message ?: "Unknown Error"))
-                        }
-
-                        is Resource.Success -> {
-                            if (response.data == true) {
-                                sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.RegisterPasswordScreen.route))
-                            } else {
-                                sendUiEvent(UiEvent.ShowSnackbar("This email is already signed up"))
-                            }
-                        }
+                handleRepositoryResponse(call = {
+                    authController.checkEmail(state.registerEmail)
+                }, onSuccess = {
+                    if (it) {
+                        sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.RegisterPasswordScreen.route))
+                    } else {
+                        sendUiEvent(UiEvent.ShowSnackbar("This email is already signed up"))
                     }
-                }
+                })
             }
 
             is LoginEvent.RegisterPasswordButtonClicked -> {
@@ -183,79 +185,47 @@ class LoginViewModel @Inject constructor(
             }
 
             is LoginEvent.RegisterUsernameButtonClicked -> {
-                viewModelScope.launch {
-                    when (val availableUserNameResponse =
-                        authController.checkUsername(state.registerUsername)) {
-                        is Resource.Error -> {
-                            sendUiEvent(
-                                UiEvent.ShowSnackbar(
-                                    availableUserNameResponse.message ?: "Unknown Error"
-                                )
-                            )
-                        }
-
-                        is Resource.Success -> {
-                            if (availableUserNameResponse.data?.first == true) {
-                                if (event.google) {
-                                    when (val createAccountResponse =
-                                        authController.createNewFromGoogleIdToken(
-                                            googleIdToken,
-                                            state.registerUsername,
-                                            state.firstName,
-                                            state.lastName,
-                                            state.dob,
-                                            state.picture,
-                                            state.gender
-                                        )) {
-                                        is Resource.Error -> {
-                                            sendUiEvent(
-                                                UiEvent.ShowSnackbar(
-                                                    createAccountResponse.message ?: "Unknown Error"
-                                                )
-                                            )
-                                        }
-
-                                        is Resource.Success -> {
-                                            sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
-                                        }
-                                    }
-                                } else {
-
-                                    when (val createAccountResponse = authController.createUser(
-                                        state.registerEmail,
-                                        state.registerPassword,
+                handleRepositoryResponse(call = {
+                    authController.checkUsername(state.registerUsername)
+                }, onSuccess = {
+                    if (it.first) {
+                        if (event.google) {
+                            handleRepositoryResponse(
+                                call = {
+                                    authController.createNewFromGoogleIdToken(
+                                        googleIdToken,
                                         state.registerUsername,
                                         state.firstName,
                                         state.lastName,
                                         state.dob,
                                         state.picture,
                                         state.gender
-                                    )) {
-                                        is Resource.Error -> {
-                                            sendUiEvent(
-                                                UiEvent.ShowSnackbar(
-                                                    createAccountResponse.message ?: "Unknown Error"
-                                                )
-                                            )
-                                        }
-
-                                        is Resource.Success -> {
-                                            sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
-                                        }
-                                    }
-                                }
-
-                            } else {
-                                state = state.copy(
-                                    recommendedUserNames = availableUserNameResponse.data?.second
-                                        ?: emptyList(), showUsernames = true
+                                    )
+                                },
+                                onSuccess = { sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route)) })
+                        } else {
+                            handleRepositoryResponse(call = {
+                                authController.createUser(
+                                    state.registerEmail,
+                                    state.registerPassword,
+                                    state.registerUsername,
+                                    state.firstName,
+                                    state.lastName,
+                                    state.dob,
+                                    state.picture,
+                                    state.gender
                                 )
-                                sendUiEvent(UiEvent.ShowSnackbar("Sorry, this username is taken"))
-                            }
+                            }, onSuccess = {
+                                sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
+                            })
                         }
+                    } else {
+                        state = state.copy(
+                            recommendedUserNames = it.second, showUsernames = true
+                        )
+                        sendUiEvent(UiEvent.ShowSnackbar("Sorry, this username is taken"))
                     }
-                }
-
+                })
             }
         }
     }
