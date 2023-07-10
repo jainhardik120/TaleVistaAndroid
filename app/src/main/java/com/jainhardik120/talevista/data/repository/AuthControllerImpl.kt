@@ -5,7 +5,7 @@ import android.util.Log
 import com.jainhardik120.talevista.data.remote.TaleVistaApi
 import com.jainhardik120.talevista.data.remote.dto.LoginResponse
 import com.jainhardik120.talevista.domain.repository.AuthController
-import com.jainhardik120.talevista.domain.repository.USERPREFERENCES
+import com.jainhardik120.talevista.domain.repository.UserPreferences
 import com.jainhardik120.talevista.util.Resource
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
@@ -30,10 +30,10 @@ class AuthControllerImpl @Inject constructor(
         if (loginResponse != null) {
             with(sharedPreferences.edit()) {
                 putString(USER_ID_KEY, loginResponse.userId)
-                putString(USERPREFERENCES.EMAIL.key, loginResponse.email)
-                putString(USERPREFERENCES.FIRST_NAME.key, loginResponse.firstName)
-                putString(USERPREFERENCES.LAST_NAME.key, loginResponse.lastName)
-                putString(USERPREFERENCES.PICTURE.key, loginResponse.picture)
+                putString(UserPreferences.EMAIL.key, loginResponse.email)
+                putString(UserPreferences.FIRST_NAME.key, loginResponse.firstName)
+                putString(UserPreferences.LAST_NAME.key, loginResponse.lastName)
+                putString(UserPreferences.PICTURE.key, loginResponse.picture)
                 putString(TOKEN_KEY, loginResponse.token)
             }.apply()
         }
@@ -66,7 +66,7 @@ class AuthControllerImpl @Inject constructor(
         }
     }
 
-    override fun getUserInfo(key: USERPREFERENCES): String? {
+    override fun getUserInfo(key: UserPreferences): String? {
         return if (isLoggedIn()) {
             sharedPreferences.getString(key.key, null)
         } else {

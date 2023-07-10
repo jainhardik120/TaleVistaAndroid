@@ -26,7 +26,7 @@ class PostViewModel @Inject constructor(
 ) : ViewModel() {
 
     var state by mutableStateOf(PostState())
-    var postId = ""
+    private var postId = ""
 
 
     private val _uiEvent = Channel<UiEvent>()

@@ -117,7 +117,7 @@ fun PostsScreen(viewModel: PostsScreenViewModel, navController: NavController) {
                                 .clip(RoundedCornerShape(100))
                         ) {
                             AsyncImage(
-                                model = "https://lh3.googleusercontent.com/a/AAcHTtf2DBJ_tpaNOR8ErUypsremX--F1LbcPihqEYObeU8iShJJ=s288-c-no",
+                                model = viewModel.state.profileImageUrl,
                                 contentDescription = "ProfileIcon"
                             )
                         }

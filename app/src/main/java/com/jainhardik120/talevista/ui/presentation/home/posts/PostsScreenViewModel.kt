@@ -6,11 +6,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.cachedIn
 import com.jainhardik120.talevista.data.remote.PostsQuery
 import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
+import com.jainhardik120.talevista.domain.repository.UserPreferences
 import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
@@ -30,10 +30,10 @@ class PostsScreenViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    val postsPagingFlow = postsRepository.getPosts().cachedIn(viewModelScope)
-
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
+    var state by mutableStateOf(PostsScreenState())
 
     private fun sendUiEvent(event: UiEvent) {
         viewModelScope.launch {
@@ -47,6 +47,11 @@ class PostsScreenViewModel @Inject constructor(
     private var page by mutableStateOf(1)
     var canPaginate by mutableStateOf(false)
     var listState by mutableStateOf(ListState.IDLE)
+
+    init {
+        state =
+            state.copy(profileImageUrl = authController.getUserInfo(UserPreferences.PICTURE) ?: "")
+    }
 
     fun getPosts() = viewModelScope.launch {
         if (page == 1 || (page != 1 && canPaginate) && listState == ListState.IDLE) {
@@ -150,6 +155,10 @@ class PostsScreenViewModel @Inject constructor(
         }
     }
 }
+
+data class PostsScreenState(
+    val profileImageUrl: String = ""
+)
 
 enum class ListState {
     IDLE,

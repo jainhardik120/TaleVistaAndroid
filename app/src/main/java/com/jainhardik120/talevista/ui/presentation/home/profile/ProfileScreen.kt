@@ -1,20 +1,17 @@
 package com.jainhardik120.talevista.ui.presentation.home.profile
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-
-const val SELF_USER = "self_user"
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun ProfileScreen(viewModel: ProfileScreenViewModel) {
+    LaunchedEffect(key1 = Unit, block = {
+        viewModel.init()
+    })
     val state = viewModel.state
-    Column() {
-        Text(text = state.username)
-        Text(text = state.firstName)
-        Text(text = state.lastName)
-        Text(text = state.email)
-        Text(text = state.createdAt)
+    if (state.user != null) {
+        val user = state.user
+        Text(text = "${user.user.first_name} ${user.user.last_name}")
     }
-//    PostsContainer(posts = viewModel.postsPagingFlow.collectAsLazyPagingItems())
 }

@@ -3,6 +3,7 @@ package com.jainhardik120.talevista.data.remote
 import com.jainhardik120.talevista.data.remote.dto.User
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Path
 
 interface UsersApi {
     companion object {
@@ -10,5 +11,12 @@ interface UsersApi {
     }
 
     @GET(BASE_URL)
-    suspend fun getSelfDetails(): Response<User>
+    suspend fun getSelfUserDetails(): Response<User>
+
+    @GET("username/{username}")
+    suspend fun getByUserName(@Path("username") username: String): Response<User>
+
+    @GET("userId/{userId}")
+    suspend fun getByUserId(@Path("userId") userId: String): Response<User>
+
 }

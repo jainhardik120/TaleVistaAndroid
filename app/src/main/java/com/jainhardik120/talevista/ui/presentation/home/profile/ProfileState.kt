@@ -1,10 +1,9 @@
 package com.jainhardik120.talevista.ui.presentation.home.profile
 
+import com.jainhardik120.talevista.data.remote.dto.User
+
 data class ProfileState(
-    val createdAt: String = "",
-    val email: String = "",
-    val firstName: String = "",
-    val lastName: String = "",
-    val username: String = "",
-    val verified: Boolean = false
+    val userId: String = "",
+    val isSelfUser: Boolean = false,
+    val user: User? = null
 )

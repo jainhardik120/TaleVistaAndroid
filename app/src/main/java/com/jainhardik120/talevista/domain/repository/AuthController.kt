@@ -9,7 +9,7 @@ interface AuthController {
 
     fun getUserId(): String?
 
-    fun getUserInfo(key: USERPREFERENCES): String?
+    fun getUserInfo(key: UserPreferences): String?
 
     suspend fun loginWithEmailPassword(email: String, password: String): Resource<String>
 
