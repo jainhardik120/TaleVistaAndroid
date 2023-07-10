@@ -3,6 +3,7 @@ package com.jainhardik120.talevista.data.repository
 import android.util.Log
 import com.jainhardik120.talevista.data.remote.UsersApi
 import com.jainhardik120.talevista.data.remote.dto.Posts
+import com.jainhardik120.talevista.data.remote.dto.SearchResult
 import com.jainhardik120.talevista.data.remote.dto.User
 import com.jainhardik120.talevista.domain.repository.UserRepository
 import com.jainhardik120.talevista.util.Resource
@@ -90,4 +91,8 @@ class UserRepositoryImpl @Inject constructor(
             emit(Posts(0, emptyList(), 0, 0))
         }
     }.flowOn(Dispatchers.IO)
+
+    override suspend fun searchUsers(query: String): Resource<SearchResult> {
+        return handleApiCall { api.searchUsers(query) }
+    }
 }

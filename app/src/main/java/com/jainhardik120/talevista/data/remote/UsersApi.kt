@@ -1,6 +1,7 @@
 package com.jainhardik120.talevista.data.remote
 
 import com.jainhardik120.talevista.data.remote.dto.Posts
+import com.jainhardik120.talevista.data.remote.dto.SearchResult
 import com.jainhardik120.talevista.data.remote.dto.User
 import retrofit2.Response
 import retrofit2.http.GET
@@ -27,5 +28,10 @@ interface UsersApi {
         @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null
     ): Posts
+
+    @GET("search")
+    suspend fun searchUsers(
+        @Query("query") query: String
+    ): Response<SearchResult>
 
 }

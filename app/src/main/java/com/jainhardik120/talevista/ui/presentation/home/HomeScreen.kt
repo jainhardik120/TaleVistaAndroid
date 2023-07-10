@@ -24,6 +24,7 @@ import com.jainhardik120.talevista.ui.presentation.home.postscreen.PostScreen
 import com.jainhardik120.talevista.ui.presentation.home.postscreen.PostViewModel
 import com.jainhardik120.talevista.ui.presentation.home.profile.ProfileScreen
 import com.jainhardik120.talevista.ui.presentation.home.profile.ProfileScreenViewModel
+import com.jainhardik120.talevista.ui.presentation.home.search.SearchScreen
 import com.jainhardik120.talevista.util.UiEvent
 
 
@@ -72,7 +73,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
                     ProfileScreen(profileScreenViewModel, navController)
                 }
                 composable(route = HomeScreenRoutes.SearchScreen.route) {
-
+                    SearchScreen(viewModel = hiltViewModel(), navController = navController)
                 }
                 composable(route = HomeScreenRoutes.CreatePostScreen.route) {
                     val createPostsScreenViewModel: CreatePostViewModel = hiltViewModel()
