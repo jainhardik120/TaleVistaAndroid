@@ -7,10 +7,14 @@ import com.jainhardik120.talevista.data.remote.dto.LoginResponse
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.UserPreferences
 import com.jainhardik120.talevista.util.Resource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody
 import org.json.JSONObject
+import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,6 +28,46 @@ class AuthControllerImpl @Inject constructor(
         private const val TAG = "AuthController"
         private const val TOKEN_KEY = "TOKEN"
         private const val USER_ID_KEY = "USER_ID"
+    }
+
+    private fun <T> ResponseBody?.toResource(
+        onBody: (JSONObject) -> Resource<T> = {
+            Log.d(TAG, "toResource: ${it.getString("error")}")
+            Resource.Error(message = it.getString("error"))
+        }
+    ): Resource<T> {
+        val errorBody = this?.string()
+        val jsonBody = errorBody?.let { JSONObject(it) }
+        return if (jsonBody != null) {
+            onBody(jsonBody)
+        } else {
+            Log.d(TAG, "toResource: Unknown Error")
+            Resource.Error(message = "Unknown Error")
+        }
+    }
+
+    private suspend fun <T, R> handleApiCall(
+        call: suspend () -> Response<T>,
+        onSuccess: (T) -> Resource<R>,
+        onError: (ResponseBody?, Int) -> Resource<R> = { error, _ ->
+            error.toResource()
+        }
+    ): Resource<R> {
+        return try {
+            withContext(Dispatchers.IO) {
+                val response = call.invoke()
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        onSuccess(it)
+                    } ?: Resource.Error("Response body is null")
+                } else {
+                    onError(response.errorBody(), response.code())
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "handleApiCall: ${e.message}")
+            Resource.Error(e.message ?: "Unknown Error")
+        }
     }
 
     private fun storeUserInfo(loginResponse: LoginResponse?) {
@@ -43,7 +87,6 @@ class AuthControllerImpl @Inject constructor(
         return JSONObject(pairs.toMap()).toString()
             .toRequestBody("application/json".toMediaTypeOrNull())
     }
-
 
     override fun isLoggedIn(): Boolean {
         val token = sharedPreferences.getString(TOKEN_KEY, null)
@@ -75,78 +118,55 @@ class AuthControllerImpl @Inject constructor(
     }
 
     override suspend fun loginWithEmailPassword(email: String, password: String): Resource<String> {
-        return try {
-            val loginResponse = api.loginUser(
+        return handleApiCall(call = {
+            api.loginUser(
                 RequestBody(
                     Pair("email", email),
                     Pair("password", password)
                 )
             )
-            if (loginResponse.isSuccessful) {
-                storeUserInfo(loginResponse.body())
-                Resource.Success(loginResponse.body()?.userId)
-            } else {
-                Log.d(TAG, "loginWithEmailPassword: Entered Login Response Error Body")
-                val errorBody = loginResponse.errorBody()?.string()
-                val jsonBody = errorBody?.let { JSONObject(it) }
-                if (jsonBody != null) {
-                    Resource.Error(message = jsonBody.getString("error"))
-                } else {
-                    Resource.Error(message = "Unknown Error")
-                }
-            }
-        } catch (e: Exception) {
-            Log.d(TAG, "loginWithEmailPassword: ${e.printStackTrace()}")
-            Resource.Error(message = e.message ?: "Unknown Error")
-        }
+        }, onSuccess = {
+            storeUserInfo(it)
+            Resource.Success(it.userId)
+        })
     }
 
     override suspend fun checkEmail(email: String): Resource<Boolean> {
-        return try {
-            val response = api.checkEmail(
+        return handleApiCall(call = {
+            api.checkEmail(
                 RequestBody(
                     Pair("email", email)
                 )
             )
-            if (response.isSuccessful) {
-                Resource.Success(true)
-            } else {
-                Resource.Success(false)
-            }
-        } catch (e: Exception) {
-            Resource.Error(message = e.message ?: "Unknown Error")
-        }
+        }, onSuccess = {
+            Resource.Success(true)
+        }, onError = { _, _ ->
+            Resource.Success(false)
+        })
     }
 
 
     override suspend fun checkUsername(username: String): Resource<Pair<Boolean, List<String>>> {
-        return try {
-            val response = api.checkUsername(
+        return handleApiCall(call = {
+            api.checkUsername(
                 RequestBody(
                     Pair("username", username)
                 )
             )
-            if (response.isSuccessful) {
-                Resource.Success(Pair(true, emptyList()))
+        }, onSuccess = {
+            Resource.Success(Pair(true, emptyList()))
+        }, onError = { body, code ->
+            if (code == 400) {
+                Resource.Error(message = "Invalid Characters")
             } else {
-                if (response.code() == 400) {
-                    Resource.Error(message = "Invalid Characters")
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    val jsonBody = errorBody?.let { JSONObject(it) }
-                    if (jsonBody != null) {
-                        val list = List(
-                            jsonBody.getJSONArray("similarUsernames").length()
-                        ) { index -> jsonBody.getJSONArray("similarUsernames")[index].toString() }
-                        Resource.Success(Pair(false, list))
-                    } else {
-                        Resource.Error(message = "Unknown Error")
-                    }
+                body.toResource { jsonBody ->
+                    val list = List(
+                        jsonBody.getJSONArray("similarUsernames").length()
+                    ) { index -> jsonBody.getJSONArray("similarUsernames")[index].toString() }
+                    Resource.Success(Pair(false, list))
                 }
             }
-        } catch (e: Exception) {
-            Resource.Error(message = e.message ?: "Unknown Error")
-        }
+        })
     }
 
     override suspend fun createUser(
@@ -159,8 +179,8 @@ class AuthControllerImpl @Inject constructor(
         picture: String,
         gender: String
     ): Resource<String> {
-        return try {
-            val loginResponse = api.createUser(
+        return handleApiCall(call = {
+            api.createUser(
                 RequestBody(
                     Pair("email", email),
                     Pair("password", password),
@@ -169,25 +189,13 @@ class AuthControllerImpl @Inject constructor(
                     Pair("last_name", lastName),
                     Pair("picture", picture),
                     Pair("dob", dob),
-                    Pair("gender", gender),
-
-                    )
+                    Pair("gender", gender)
+                )
             )
-            if (loginResponse.isSuccessful) {
-                storeUserInfo(loginResponse.body())
-                Resource.Success(loginResponse.body()?.userId)
-            } else {
-                val errorBody = loginResponse.errorBody()?.string()
-                val jsonBody = errorBody?.let { JSONObject(it) }
-                if (jsonBody != null) {
-                    Resource.Error(message = jsonBody.getString("error"))
-                } else {
-                    Resource.Error(message = "Unknown Error")
-                }
-            }
-        } catch (e: Exception) {
-            Resource.Error(message = e.message ?: "Unknown Error")
-        }
+        }, onSuccess = {
+            storeUserInfo(it)
+            Resource.Success(it.userId)
+        })
     }
 
     data class GoogleNewUserResponse(
@@ -197,50 +205,36 @@ class AuthControllerImpl @Inject constructor(
     )
 
     override suspend fun useGoogleIdToken(idToken: String): Resource<Pair<Boolean, GoogleNewUserResponse?>> {
-        return try {
-            val loginResponse = api.authorizeGoogleIdToken(
+        return handleApiCall(call = {
+            api.authorizeGoogleIdToken(
                 RequestBody(
                     Pair("idToken", idToken)
                 )
             )
-            if (loginResponse.isSuccessful) {
-                storeUserInfo(loginResponse.body())
-                Resource.Success(Pair(true, null))
-            } else {
-                if (loginResponse.code() == 400) {
-                    val errorBody = loginResponse.errorBody()?.string()
-                    val jsonBody = errorBody?.let { JSONObject(it) }
-                    if (jsonBody != null) {
-                        if (jsonBody.getString("error") == "Username Required") {
-                            Resource.Success(
-                                Pair(
-                                    false, GoogleNewUserResponse(
-                                        jsonBody.getString("first_name"),
-                                        jsonBody.getString("last_name"),
-                                        jsonBody.getString("picture"),
-                                    )
+        }, onSuccess = {
+            storeUserInfo(it)
+            Resource.Success(Pair(true, null))
+        }, onError = { body, code ->
+            if (code == 400) {
+                body.toResource { jsonBody ->
+                    if (jsonBody.getString("error") == "Username Required") {
+                        Resource.Success(
+                            Pair(
+                                false, GoogleNewUserResponse(
+                                    jsonBody.getString("first_name"),
+                                    jsonBody.getString("last_name"),
+                                    jsonBody.getString("picture"),
                                 )
                             )
-                        } else {
-                            Resource.Error(message = jsonBody.getString("error"))
-                        }
+                        )
                     } else {
-                        Resource.Error(message = "Unknown Error")
-                    }
-                } else {
-                    val errorBody = loginResponse.errorBody()?.string()
-                    val jsonBody = errorBody?.let { JSONObject(it) }
-                    if (jsonBody != null) {
                         Resource.Error(message = jsonBody.getString("error"))
-                    } else {
-                        Resource.Error(message = "Unknown Error")
                     }
                 }
-
+            } else {
+                body.toResource()
             }
-        } catch (e: Exception) {
-            Resource.Error(message = e.message ?: "Unknown Error")
-        }
+        })
     }
 
     override suspend fun createNewFromGoogleIdToken(
@@ -252,8 +246,8 @@ class AuthControllerImpl @Inject constructor(
         picture: String,
         gender: String
     ): Resource<Boolean> {
-        return try {
-            val response = api.createNewFromGoogleIdToken(
+        return handleApiCall(call = {
+            api.createNewFromGoogleIdToken(
                 RequestBody(
                     Pair("idToken", idToken),
                     Pair("username", username),
@@ -264,20 +258,9 @@ class AuthControllerImpl @Inject constructor(
                     Pair("gender", gender),
                 )
             )
-            if (response.isSuccessful) {
-                storeUserInfo(response.body())
-                Resource.Success(true)
-            } else {
-                val errorBody = response.errorBody()?.string()
-                val jsonBody = errorBody?.let { JSONObject(it) }
-                if (jsonBody != null) {
-                    Resource.Error(message = jsonBody.getString("error"))
-                } else {
-                    Resource.Error(message = "Unknown Error")
-                }
-            }
-        } catch (e: Exception) {
-            Resource.Error(message = e.message ?: "Unknown Error")
-        }
+        }, onSuccess = {
+            storeUserInfo(it)
+            Resource.Success(true)
+        })
     }
 }

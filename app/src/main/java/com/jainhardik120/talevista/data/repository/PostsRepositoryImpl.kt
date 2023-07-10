@@ -100,7 +100,6 @@ class PostsRepositoryImpl @Inject constructor(
                     userId = query.userId
                 )
             )
-
         } catch (e: Exception) {
             emit(Posts(0, emptyList(), 0, 0))
         }
