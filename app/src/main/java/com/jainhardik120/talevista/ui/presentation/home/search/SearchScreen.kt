@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
 
 @Composable
 fun SearchScreen(
@@ -54,7 +56,9 @@ fun SearchScreen(
                         .padding(10.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = {
-                        navController.navigateUp()
+                        scope.launch {
+                            navController.navigateUp()
+                        }
                     }) {
                         Icon(Icons.Rounded.ArrowBack, contentDescription = "Back Arrow")
                     }
@@ -70,9 +74,14 @@ fun SearchScreen(
                                 .fillMaxWidth()
                                 .padding(start = 16.dp)
                                 .align(Alignment.CenterStart),
-                            keyboardOptions = KeyboardOptions(
+                            keyboardOptions = KeyboardOptions.Default.copy(
                                 keyboardType = KeyboardType.Text,
                                 imeAction = ImeAction.Search
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+
+                                }
                             ),
                             maxLines = 1,
                             singleLine = true

@@ -37,7 +37,7 @@ import com.jainhardik120.talevista.data.remote.dto.Post
 fun PostCard(
     post: Post,
     onEvent: (PostCardEvent) -> Unit,
-    index: Int
+    index: Int,
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -136,9 +136,3 @@ fun PostCard(
     }
 }
 
-sealed class PostCardEvent {
-    object AuthorClicked : PostCardEvent()
-    object PostClicked : PostCardEvent()
-    object LikeButtonClicked : PostCardEvent()
-    object DislikeButtonClicked : PostCardEvent()
-}

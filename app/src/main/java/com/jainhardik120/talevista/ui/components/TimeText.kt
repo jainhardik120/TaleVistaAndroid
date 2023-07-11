@@ -32,7 +32,8 @@ fun TimeAgoText(dateTimeString: String) {
         Text(
             text = dateTimeString,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.outline
+            color = MaterialTheme.colorScheme.outline,
+            maxLines = 1
         )
     }
 }

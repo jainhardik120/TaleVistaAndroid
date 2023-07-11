@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -204,18 +205,21 @@ fun ProfileScreen(viewModel: ProfileScreenViewModel, navController: NavHostContr
                             0 -> {
                                 PaginatingColumn(
                                     listState = viewModel.listState,
-                                    data = posts,
                                     lazyListState = lazyListState,
-                                    item = { item, index ->
-                                        PostCard(post = item, onEvent = {
-                                            viewModel.onEvent(
-                                                ProfileScreenEvent.CardEvent(
-                                                    it,
-                                                    item,
-                                                    index
+                                    items = {
+                                        itemsIndexed(posts, key = { _, item ->
+                                            item._id
+                                        }) { index, item ->
+                                            PostCard(post = item, onEvent = {
+                                                viewModel.onEvent(
+                                                    ProfileScreenEvent.CardEvent(
+                                                        it,
+                                                        item,
+                                                        index
+                                                    )
                                                 )
-                                            )
-                                        }, index = index)
+                                            }, index = index)
+                                        }
                                     }
                                 )
                             }
@@ -223,12 +227,21 @@ fun ProfileScreen(viewModel: ProfileScreenViewModel, navController: NavHostContr
                             1 -> {
                                 PaginatingColumn(
                                     listState = viewModel.likedListState,
-                                    data = likedPosts,
                                     lazyListState = likedLazyListState,
-                                    item = { item, index ->
-                                        PostCard(post = item, onEvent = {
-//                                            viewModel.onEvent(ProfileScreenEvent.CardEvent(it, item, index))
-                                        }, index = index)
+                                    items = {
+                                        itemsIndexed(likedPosts, key = { _, item ->
+                                            item._id
+                                        }) { index, item ->
+                                            PostCard(post = item, onEvent = {
+                                                viewModel.onEvent(
+                                                    ProfileScreenEvent.CardEvent(
+                                                        it,
+                                                        item,
+                                                        index
+                                                    )
+                                                )
+                                            }, index = index)
+                                        }
                                     }
                                 )
                             }
