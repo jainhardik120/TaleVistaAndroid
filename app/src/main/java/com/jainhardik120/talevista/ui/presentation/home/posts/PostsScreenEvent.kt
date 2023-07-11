@@ -7,4 +7,6 @@ sealed class PostsScreenEvent {
     object ProfileLogoClicked : PostsScreenEvent()
     data class CardEvent(val event: PostCardEvent, val post: Post, val index: Int) :
         PostsScreenEvent()
+
+    data class TabChanged(val index: Int) : PostsScreenEvent()
 }

@@ -7,8 +7,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jainhardik120.talevista.data.remote.PostsQuery
+import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
 import com.jainhardik120.talevista.data.remote.dto.Post
-import com.jainhardik120.talevista.data.remote.dto.UserX
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.domain.repository.UserPreferences
@@ -18,21 +18,11 @@ import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -65,6 +55,9 @@ class PostsScreenViewModel @Inject constructor(
     init {
         state =
             state.copy(profileImageUrl = authController.getUserInfo(UserPreferences.PICTURE) ?: "")
+        handleRepositoryResponse({ postsRepository.getCategories() }) {
+            state = state.copy(categories = it)
+        }
     }
 
     fun getPosts() = viewModelScope.launch {
@@ -175,52 +168,19 @@ class PostsScreenViewModel @Inject constructor(
             is PostsScreenEvent.CardEvent -> {
                 onPostCardEvent(event.event, event.post, event.index)
             }
-        }
-    }
 
-    private val _searchText = MutableStateFlow("")
-    val searchText = _searchText.asStateFlow()
-
-    private val _isSearching = MutableStateFlow(false)
-    val isSearching = _isSearching.asStateFlow()
-
-    private val _users = MutableStateFlow(emptyList<UserX>())
-
-    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    val users = searchText
-        .debounce(1000L)
-        .onEach { _isSearching.update { true } }
-        .flatMapLatest { query ->
-            if (query.isBlank()) {
-                flowOf(emptyList())
-            } else {
-                flow {
-                    _isSearching.emit(true)
-                    val response = userRepository.searchUsers(query)
-                    if (response is Resource.Success) {
-                        emit(response.data?.users ?: emptyList())
-                    } else {
-                        emit(emptyList())
-                    }
-                    _isSearching.emit(false)
-                }
+            is PostsScreenEvent.TabChanged -> {
+                Log.d("TAG", "onEvent: ${event.index}")
+                state = state.copy(selectedCategoryIndex = event.index)
             }
-        }.onEach {
-            _isSearching.update { false }
         }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            _users.value
-        )
-
-    fun onSearchChanged(text: String) {
-        _searchText.value = text
     }
 }
 
 data class PostsScreenState(
-    val profileImageUrl: String = ""
+    val profileImageUrl: String = "",
+    val categories: List<CategoriesItem> = emptyList(),
+    val selectedCategoryIndex: Int = 0
 )
 
 enum class ListState {

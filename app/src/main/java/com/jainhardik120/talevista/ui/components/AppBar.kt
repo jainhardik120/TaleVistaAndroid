@@ -2,7 +2,6 @@ package com.jainhardik120.talevista.ui.components
 
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationState
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.core.animateTo
@@ -43,26 +42,23 @@ import kotlin.math.roundToInt
 @ExperimentalMaterial3Api
 @Composable
 fun CustomLargeAppBar(
+    modifier: Modifier = Modifier,
     upperBar: @Composable () -> Unit,
     lowerBar: @Composable () -> Unit,
-    maxHeight: Dp = 152.dp,
-    pinnedHeight: Dp = 64.dp,
-    modifier: Modifier = Modifier,
+    upperBarHeight: Dp = 88.dp,
+    lowerBarHeight: Dp = 64.dp,
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    if (maxHeight <= pinnedHeight) {
-        throw IllegalArgumentException(
-            "A TwoRowsTopAppBar max height should be greater than its pinned height"
-        )
-    }
+    val maxHeight: Dp = upperBarHeight + lowerBarHeight
+    val pinnedHeight: Dp = lowerBarHeight
     val pinnedHeightPx: Float
     val maxHeightPx: Float
     val titleBottomPaddingPx: Int
     LocalDensity.current.run {
         pinnedHeightPx = pinnedHeight.toPx()
         maxHeightPx = maxHeight.toPx()
-        titleBottomPaddingPx = LargeTitleBottomPadding.roundToPx()
+        titleBottomPaddingPx = bottomPadding.roundToPx()
     }
     SideEffect {
         if (scrollBehavior?.state?.heightOffsetLimit != pinnedHeightPx - maxHeightPx) {
@@ -103,7 +99,6 @@ fun CustomLargeAppBar(
                     ?: 0f),
                 title = upperBar,
                 titleAlpha = bottomTitleAlpha,
-                titleVerticalArrangement = Arrangement.Bottom,
                 titleBottomPadding = titleBottomPaddingPx,
                 hideTitleSemantics = hideBottomRowSemantics
             )
@@ -114,7 +109,6 @@ fun CustomLargeAppBar(
                 heightPx = pinnedHeightPx,
                 title = lowerBar,
                 titleAlpha = 1f,
-                titleVerticalArrangement = Arrangement.Bottom,
                 titleBottomPadding = 0,
                 hideTitleSemantics = hideTopRowSemantics,
             )
@@ -129,7 +123,7 @@ private fun TopAppBarLayout(
     heightPx: Float,
     title: @Composable () -> Unit,
     titleAlpha: Float,
-    titleVerticalArrangement: Arrangement.Vertical,
+    titleVerticalArrangement: Arrangement.Vertical = Arrangement.Bottom,
     titleBottomPadding: Int,
     hideTitleSemantics: Boolean
 ) {
@@ -145,9 +139,9 @@ private fun TopAppBarLayout(
             }
         },
         modifier = modifier
-    ) { measurables, constraints ->
+    ) { measurable, constraints ->
         val titlePlaceable =
-            measurables.first { it.layoutId == "title" }
+            measurable.first { it.layoutId == "title" }
                 .measure(constraints.copy(minWidth = 0, maxWidth = constraints.maxWidth))
         val titleBaseline =
             if (titlePlaceable[LastBaseline] != AlignmentLine.Unspecified) {
@@ -222,10 +216,4 @@ private suspend fun settleAppBar(
 
     return Velocity(0f, remainingVelocity)
 }
-
-internal val TopTitleAlphaEasing = CubicBezierEasing(.8f, 0f, .8f, .15f)
-
-private val LargeTitleBottomPadding = 28.dp
-private val TopAppBarHorizontalPadding = 4.dp
-
-private val TopAppBarTitleInset = 16.dp - TopAppBarHorizontalPadding
+private val bottomPadding = 28.dp
