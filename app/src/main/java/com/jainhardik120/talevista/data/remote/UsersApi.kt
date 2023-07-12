@@ -3,6 +3,7 @@ package com.jainhardik120.talevista.data.remote
 import com.jainhardik120.talevista.data.remote.dto.Posts
 import com.jainhardik120.talevista.data.remote.dto.SearchResult
 import com.jainhardik120.talevista.data.remote.dto.User
+import com.jainhardik120.talevista.util.BASE_SERVER_URL
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -10,7 +11,7 @@ import retrofit2.http.Query
 
 interface UsersApi {
     companion object {
-        const val BASE_URL = "https://tale-vista-server.onrender.com/api/user/"
+        const val BASE_URL = "$BASE_SERVER_URL/api/user/"
     }
 
     @GET(BASE_URL)

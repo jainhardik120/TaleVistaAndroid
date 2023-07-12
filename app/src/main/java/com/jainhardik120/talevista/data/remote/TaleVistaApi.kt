@@ -2,6 +2,7 @@ package com.jainhardik120.talevista.data.remote
 
 import com.jainhardik120.talevista.data.remote.dto.LoginResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
+import com.jainhardik120.talevista.util.BASE_SERVER_URL
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -12,7 +13,7 @@ import retrofit2.http.Path
 interface TaleVistaApi {
 
     companion object {
-        const val BASE_URL = "https://tale-vista-server.onrender.com/api/auth/"
+        const val BASE_URL = "$BASE_SERVER_URL/api/auth/"
     }
 
     @POST("login")

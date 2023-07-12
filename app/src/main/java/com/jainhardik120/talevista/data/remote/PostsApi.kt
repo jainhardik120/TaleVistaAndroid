@@ -1,13 +1,12 @@
 package com.jainhardik120.talevista.data.remote
 
-import android.content.SharedPreferences
 import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
 import com.jainhardik120.talevista.data.remote.dto.CommentsItem
 import com.jainhardik120.talevista.data.remote.dto.CreatePostResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
 import com.jainhardik120.talevista.data.remote.dto.Posts
 import com.jainhardik120.talevista.data.remote.dto.SinglePost
-import okhttp3.Interceptor
+import com.jainhardik120.talevista.util.BASE_SERVER_URL
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -18,21 +17,9 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-class TokenInterceptor(
-    private val sharedPreferences: SharedPreferences
-) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
-        val token = sharedPreferences.getString("TOKEN", "null")
-        val request = chain.request().newBuilder()
-            .addHeader("Authorization", "Bearer $token")
-            .build()
-        return chain.proceed(request)
-    }
-}
-
 interface PostsApi {
     companion object{
-        const val BASE_URL = "https://tale-vista-server.onrender.com/api/posts/"
+        const val BASE_URL = "$BASE_SERVER_URL/api/posts/"
     }
 
     @GET("categories")
