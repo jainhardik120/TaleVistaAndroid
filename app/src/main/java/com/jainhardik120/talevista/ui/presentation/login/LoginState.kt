@@ -5,18 +5,13 @@ data class LoginState(
     val loginPassword: String = "",
     val registerEmail: String = "",
     val registerPassword: String = "",
-    val registerUsername: String = "",
-    val currPage: LoginPage = LoginPage.ExistingAccount,
     val recommendedUserNames: List<String> = emptyList(),
     val showUsernames: Boolean = false,
     val firstName: String = "",
     val lastName: String = "",
     val picture: String = "",
-    val dob: String = "",
-    val gender: String = ""
+    val dob: Long = 0,
+    val gender: Gender = Gender.MALE,
+    val googleIdToken: String = "",
+    val isGoogleUsed: Boolean = false
 )
-
-enum class LoginPage{
-    ExistingAccount,
-    NewAccount
-}

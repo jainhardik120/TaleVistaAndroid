@@ -1,4 +1,4 @@
-package com.jainhardik120.talevista.ui.presentation.login
+package com.jainhardik120.talevista.ui.presentation.login.components
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
@@ -26,18 +26,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.jainhardik120.talevista.R
+import com.jainhardik120.talevista.ui.presentation.login.LoginEvent
+import com.jainhardik120.talevista.ui.presentation.login.LoginState
 
 @Composable
 fun EmailLoginScreen(
@@ -61,8 +70,6 @@ fun EmailLoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "TaleVista", style = MaterialTheme.typography.headlineLarge)
-            Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -127,11 +134,19 @@ fun EmailLoginScreen(
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
-
+                        onEvent(LoginEvent.LoginButtonClicked)
                     }
                 ),
                 singleLine = true
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = {
+
+                }) {
+                    Text(text = "Forgot Passowrd?")
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 modifier = Modifier
@@ -152,12 +167,14 @@ fun EmailLoginScreen(
                 Divider(
                     Modifier
                         .weight(1F)
-                        .fillMaxWidth())
+                        .fillMaxWidth()
+                )
                 Text(text = "OR", modifier = Modifier.padding(horizontal = 4.dp))
                 Divider(
                     Modifier
                         .weight(1F)
-                        .fillMaxWidth())
+                        .fillMaxWidth()
+                )
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(modifier = Modifier
@@ -177,7 +194,23 @@ fun EmailLoginScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Don't have an account? Sign Up")
+            Text(
+                buildAnnotatedString {
+                    append("New to ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(stringResource(id = R.string.app_name))
+                    }
+                    append("? ")
+                    withStyle(
+                        style = SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        append("Register")
+                    }
+                }
+            )
         }
     }
 }

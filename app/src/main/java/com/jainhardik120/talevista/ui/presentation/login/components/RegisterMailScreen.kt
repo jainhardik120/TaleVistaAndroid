@@ -1,4 +1,4 @@
-package com.jainhardik120.talevista.ui.presentation.login
+package com.jainhardik120.talevista.ui.presentation.login.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.jainhardik120.talevista.ui.presentation.login.LoginEvent
+import com.jainhardik120.talevista.ui.presentation.login.LoginState
 
 @Composable
 fun RegisterMailScreen(
@@ -30,8 +32,6 @@ fun RegisterMailScreen(
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(64.dp))
-        Text(text = "TaleVista", style = MaterialTheme.typography.headlineLarge)
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             modifier = Modifier
@@ -48,8 +48,8 @@ fun RegisterMailScreen(
                 keyboardType = KeyboardType.Email
             ),
             keyboardActions = KeyboardActions(
-                onDone = {
-
+                onNext = {
+                    onEvent(LoginEvent.RegisterMailButtonClicked)
                 }
             ),
             singleLine = true

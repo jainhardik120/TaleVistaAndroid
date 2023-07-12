@@ -1,6 +1,5 @@
-package com.jainhardik120.talevista.ui.presentation.login
+package com.jainhardik120.talevista.ui.presentation.login.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +27,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.jainhardik120.talevista.ui.presentation.login.LoginEvent
+import com.jainhardik120.talevista.ui.presentation.login.LoginState
 
 @Composable
 fun RegisterPasswordScreen(
@@ -39,11 +40,13 @@ fun RegisterPasswordScreen(
         Modifier
             .padding(horizontal = 8.dp)
             .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             value = state.registerPassword,
             label = {
                 Text(
@@ -77,18 +80,21 @@ fun RegisterPasswordScreen(
                 PasswordVisualTransformation()
             },
             keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done,
+                imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Password
             ),
             keyboardActions = KeyboardActions(
-                onDone = {
-
+                onNext = {
+                    onEvent(LoginEvent.RegisterPasswordButtonClicked)
                 }
             ),
             singleLine = true
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { onEvent(LoginEvent.RegisterPasswordButtonClicked) }) {
+        Button(modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+            onClick = { onEvent(LoginEvent.RegisterPasswordButtonClicked) }) {
             Text(text = "Next")
         }
     }

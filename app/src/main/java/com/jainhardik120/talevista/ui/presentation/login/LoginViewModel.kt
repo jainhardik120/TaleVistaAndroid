@@ -2,6 +2,7 @@ package com.jainhardik120.talevista.ui.presentation.login
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -18,22 +19,63 @@ import com.jainhardik120.talevista.ui.presentation.Screen
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.TimeZone
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authController: AuthController
 ) : ViewModel() {
-
-    private var googleIdToken = ""
-
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
+    private val _username = MutableStateFlow("")
+    val username = _username.asStateFlow()
+
     var state by mutableStateOf(LoginState())
+
+    private val _usernameAvailable = MutableStateFlow(true)
+
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    val usernameAvailable = username.debounce(500).flatMapLatest { it ->
+        if (it.isBlank()) {
+            flowOf(true)
+        } else {
+            flow {
+                val response = authController.checkUsername(it)
+                if (response is Resource.Success) {
+                    if (response.data?.first == true) {
+                        emit(true)
+                    } else {
+                        emit(false)
+                    }
+                } else {
+                    emit(false)
+                }
+            }
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        _usernameAvailable.value
+    )
+
+    private lateinit var oneTapClient: SignInClient
 
     private fun sendUiEvent(event: UiEvent) {
         viewModelScope.launch {
@@ -61,7 +103,6 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private lateinit var oneTapClient: SignInClient
 
     private fun onLoginClicked(emailAddress: String, password: String) {
         handleRepositoryResponse(call = {
@@ -116,14 +157,13 @@ class LoginViewModel @Inject constructor(
                 } else {
                     if (data.second != null) {
                         val userInfo = data.second
-                        googleIdToken = idToken
+                        state = state.copy(googleIdToken = idToken, isGoogleUsed = true)
                         if (userInfo != null) {
                             state = state.copy(
                                 firstName = userInfo.firstName,
-                                lastName = userInfo.lastName,
-                                picture = userInfo.picture
+                                lastName = userInfo.lastName
                             )
-                            sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.GoogleUsernameScreen.route))
+                            sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.RegisterUsernameScreen.route))
                         }
                     }
                 }
@@ -152,7 +192,7 @@ class LoginViewModel @Inject constructor(
             }
 
             is LoginEvent.RegisterUserNameChanged -> {
-                state = state.copy(registerUsername = event.username, showUsernames = false)
+                _username.value = event.username
             }
 
             is LoginEvent.LoginButtonClicked -> {
@@ -168,38 +208,47 @@ class LoginViewModel @Inject constructor(
             }
 
             is LoginEvent.RegisterMailButtonClicked -> {
-                handleRepositoryResponse(call = {
-                    authController.checkEmail(state.registerEmail)
-                }, onSuccess = {
-                    if (it) {
-                        sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.RegisterPasswordScreen.route))
-                    } else {
-                        sendUiEvent(UiEvent.ShowSnackbar("This email is already signed up"))
-                    }
-                })
+                if (state.registerEmail.isNotEmpty()) {
+                    handleRepositoryResponse(call = {
+                        authController.checkEmail(state.registerEmail)
+                    }, onSuccess = {
+                        if (it) {
+                            sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.RegisterPasswordScreen.route))
+                        } else {
+                            sendUiEvent(UiEvent.ShowSnackbar("This email is already signed up"))
+                        }
+                    })
+                } else {
+                    sendUiEvent(UiEvent.ShowSnackbar("Email empty"))
+                }
+
             }
 
             is LoginEvent.RegisterPasswordButtonClicked -> {
-                // TODO : Validate Password Length and Characters
-                sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.RegisterUsernameScreen.route))
+                if (state.registerPassword.isNotEmpty() && state.registerPassword.length >= 8) {
+                    state = state.copy(isGoogleUsed = false)
+                    sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.RegisterUsernameScreen.route))
+                } else {
+                    sendUiEvent(UiEvent.ShowSnackbar("Minimum length for password is 8"))
+                }
             }
 
             is LoginEvent.RegisterUsernameButtonClicked -> {
                 handleRepositoryResponse(call = {
-                    authController.checkUsername(state.registerUsername)
+                    authController.checkUsername(_username.value)
                 }, onSuccess = {
                     if (it.first) {
-                        if (event.google) {
+                        if (state.isGoogleUsed) {
                             handleRepositoryResponse(
                                 call = {
                                     authController.createNewFromGoogleIdToken(
-                                        googleIdToken,
-                                        state.registerUsername,
+                                        state.googleIdToken,
+                                        _username.value,
                                         state.firstName,
                                         state.lastName,
-                                        state.dob,
+                                        dobString(state.dob),
                                         state.picture,
-                                        state.gender
+                                        state.gender.codeName
                                     )
                                 },
                                 onSuccess = { sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route)) })
@@ -208,12 +257,12 @@ class LoginViewModel @Inject constructor(
                                 authController.createUser(
                                     state.registerEmail,
                                     state.registerPassword,
-                                    state.registerUsername,
+                                    _username.value,
                                     state.firstName,
                                     state.lastName,
-                                    state.dob,
+                                    dobString(state.dob),
                                     state.picture,
-                                    state.gender
+                                    state.gender.codeName
                                 )
                             }, onSuccess = {
                                 sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
@@ -223,10 +272,40 @@ class LoginViewModel @Inject constructor(
                         state = state.copy(
                             recommendedUserNames = it.second, showUsernames = true
                         )
-                        sendUiEvent(UiEvent.ShowSnackbar("Sorry, this username is taken"))
+                        _usernameAvailable.value = false
                     }
                 })
             }
+
+            is LoginEvent.GenderChanged -> {
+                state = state.copy(gender = event.gender)
+            }
+
+            is LoginEvent.RegisterFNameChanged -> {
+                state = state.copy(firstName = event.name)
+            }
+
+            is LoginEvent.RegisterLNameChanged -> {
+                state = state.copy(lastName = event.name)
+            }
+
+            is LoginEvent.DateOfBirthChanged -> {
+                state = state.copy(dob = event.date)
+            }
+
+            LoginEvent.ForgotPasswordClicked -> {
+                sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.ForgotPasswordScreen.route))
+            }
         }
     }
+
+    private fun dobString(milliseconds: Long): String {
+        val date = Date(milliseconds)
+        Log.d("TAG", "dobString: $milliseconds")
+        val sdf = SimpleDateFormat("yyyy-MM-dd")
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+
+        return sdf.format(date)
+    }
+
 }

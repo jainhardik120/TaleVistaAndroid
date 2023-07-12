@@ -11,15 +11,21 @@ sealed class LoginEvent {
     data class RegisterPasswordChanged(val password: String) : LoginEvent()
     data class RegisterUserNameChanged(val username: String) : LoginEvent()
     data class RegisterMailChanged(val email: String) : LoginEvent()
+    data class RegisterFNameChanged(val name: String) : LoginEvent()
+    data class RegisterLNameChanged(val name: String) : LoginEvent()
+    data class GenderChanged(val gender: Gender) : LoginEvent()
+    data class DateOfBirthChanged(val date: Long) : LoginEvent()
     data class LaunchOneTapClient(
         val context: Context,
         val launcher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>
     ) : LoginEvent()
 
     object LoginButtonClicked : LoginEvent()
-
     object SignUpTextClicked : LoginEvent()
     object RegisterMailButtonClicked : LoginEvent()
     object RegisterPasswordButtonClicked : LoginEvent()
-    data class RegisterUsernameButtonClicked(val google: Boolean) : LoginEvent()
+    object RegisterUsernameButtonClicked : LoginEvent()
+    object ForgotPasswordClicked : LoginEvent()
 }
+
+
