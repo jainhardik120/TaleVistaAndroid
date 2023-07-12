@@ -125,6 +125,23 @@ class CreatePostViewModel @Inject constructor(
                     })
                 }
             }
+
+            CreatePostsEvent.CancelButtonClicked -> {
+                if (!(state.isNewPost && state.postContent.isEmpty())) {
+                    state = state.copy(isShowingDialog = true)
+                } else {
+                    sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
+                }
+            }
+
+            CreatePostsEvent.DialogConfirmButtonClicked -> {
+                state = state.copy(isShowingDialog = false)
+                sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
+            }
+
+            CreatePostsEvent.DialogDismissed -> {
+                state = state.copy(isShowingDialog = false)
+            }
         }
     }
 }

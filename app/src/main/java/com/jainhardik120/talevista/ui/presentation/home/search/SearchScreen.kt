@@ -26,13 +26,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel,
@@ -67,6 +70,7 @@ fun SearchScreen(
                             .weight(1f)
                             .fillMaxWidth()
                     ) {
+                        val keyboardController = LocalSoftwareKeyboardController.current
                         BasicTextField(
                             value = searchText,
                             onValueChange = viewModel::onSearchChanged,
@@ -80,7 +84,7 @@ fun SearchScreen(
                             ),
                             keyboardActions = KeyboardActions(
                                 onSearch = {
-
+                                    keyboardController?.hide()
                                 }
                             ),
                             maxLines = 1,

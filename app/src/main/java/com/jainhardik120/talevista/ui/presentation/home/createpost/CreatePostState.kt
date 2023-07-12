@@ -7,5 +7,6 @@ data class CreatePostState(
     val postContent: String = "",
     val categories: List<CategoriesItem> = emptyList(),
     val postId: String = "",
-    val isNewPost: Boolean = true
+    val isNewPost: Boolean = true,
+    val isShowingDialog: Boolean = false
 )
