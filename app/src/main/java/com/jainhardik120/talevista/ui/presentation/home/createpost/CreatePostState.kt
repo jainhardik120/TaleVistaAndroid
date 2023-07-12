@@ -5,5 +5,7 @@ import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
 data class CreatePostState(
     val selectedCategory: Int = 0,
     val postContent: String = "",
-    val categories: List<CategoriesItem> = emptyList()
+    val categories: List<CategoriesItem> = emptyList(),
+    val postId: String = "",
+    val isNewPost: Boolean = true
 )

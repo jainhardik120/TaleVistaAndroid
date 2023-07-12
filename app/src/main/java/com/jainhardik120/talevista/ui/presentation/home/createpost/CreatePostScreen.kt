@@ -22,7 +22,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,15 +35,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.jainhardik120.talevista.ui.presentation.home.HomeState
+import com.jainhardik120.talevista.util.NAVIGATE_UP_ROUTE
 import com.jainhardik120.talevista.util.UiEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
     viewModel: CreatePostViewModel,
-    sharedState: HomeState,
-    hostState: SnackbarHostState,
     navController: NavController
 ) {
     var dropDownExpanded by remember {
@@ -52,15 +49,18 @@ fun CreatePostScreen(
     }
     val state = viewModel.state
     LaunchedEffect(key1 = true, block = {
-        viewModel.setCategories(sharedState.categories)
         viewModel.uiEvent.collect {
             when (it) {
                 is UiEvent.Navigate -> {
-
+                    if (it.route == NAVIGATE_UP_ROUTE) {
+                        navController.navigateUp()
+                    } else {
+                        navController.navigate(it.route)
+                    }
                 }
 
                 is UiEvent.ShowSnackbar -> {
-                    hostState.showSnackbar(it.message)
+
                 }
             }
         }
@@ -114,8 +114,6 @@ fun CreatePostScreen(
             )
         }
         Column(Modifier.imePadding()) {
-
-
             Row(
                 modifier = Modifier
                     .height(72.dp)

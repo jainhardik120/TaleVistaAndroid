@@ -3,6 +3,7 @@ package com.jainhardik120.talevista.ui.presentation.home.profile
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
@@ -23,8 +25,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Report
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -48,12 +54,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.jainhardik120.talevista.R
 import com.jainhardik120.talevista.data.remote.dto.User
 import com.jainhardik120.talevista.ui.components.PaginatingColumn
 import com.jainhardik120.talevista.ui.components.PostCard
@@ -136,7 +144,7 @@ fun ProfileScreen(viewModel: ProfileScreenViewModel, navController: NavHostContr
                             .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        IconButton(modifier = Modifier.padding(start = 4.dp), onClick = {
+                        IconButton(onClick = {
                             scope.launch {
                                 navController.navigateUp()
                             }
@@ -144,12 +152,46 @@ fun ProfileScreen(viewModel: ProfileScreenViewModel, navController: NavHostContr
                             Icon(Icons.Rounded.ArrowBack, contentDescription = "Back Arrow")
                         }
                         Text(
-                            modifier = Modifier.padding(start = 4.dp),
-                            text = state.user?.user?.username ?: "TaleVista",
+                            modifier = Modifier.padding(start = 10.dp),
+                            text = state.user?.user?.username ?: stringResource(R.string.app_name),
                             overflow = TextOverflow.Ellipsis,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
+                        if (state.isSelfUser) {
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Spacer(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                            )
+                            Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
+                                IconButton(onClick = { viewModel.onEvent(ProfileScreenEvent.MoreIconClicked) }) {
+                                    Icon(
+                                        Icons.Default.MoreVert,
+                                        contentDescription = "Localized description"
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = viewModel.state.menuExpanded,
+                                    onDismissRequest = { viewModel.onEvent(ProfileScreenEvent.DismissMenu) }
+                                ) {
+
+                                    DropdownMenuItem(
+                                        text = { Text("Report") },
+                                        onClick = {
+                                            viewModel.onEvent(ProfileScreenEvent.DismissMenu)
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Outlined.Report,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
 
                     }
                     if (state.user != null) {

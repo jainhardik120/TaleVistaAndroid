@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
+import com.jainhardik120.talevista.util.NAVIGATE_UP_ROUTE
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -91,7 +92,7 @@ class PostViewModel @Inject constructor(
 
             is PostScreenEvent.DeletePostButtonClicked -> {
                 handleRepositoryResponse({ postsRepository.deletePost(postId) },
-                    { sendUiEvent(UiEvent.Navigate("NAVIGATE_BACK")) })
+                    { sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE)) })
             }
 
             PostScreenEvent.PostAuthorClicked -> {
@@ -100,6 +101,14 @@ class PostViewModel @Inject constructor(
                         HomeScreenRoutes.ProfileScreen.withArgs(
                             state.post?.post?.author?._id ?: ""
                         )
+                    )
+                )
+            }
+
+            PostScreenEvent.EditPostButtonClicked -> {
+                sendUiEvent(
+                    UiEvent.Navigate(
+                        HomeScreenRoutes.CreatePostScreen.route + "?postId=" + state.post?.post?._id
                     )
                 )
             }

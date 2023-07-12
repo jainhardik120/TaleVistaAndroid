@@ -6,5 +6,6 @@ data class ProfileState(
     val userId: String = "",
     val isSelfUser: Boolean = false,
     val user: User? = null,
-    val selectedTab: Int = 0
+    val selectedTab: Int = 0,
+    var menuExpanded: Boolean = false
 )

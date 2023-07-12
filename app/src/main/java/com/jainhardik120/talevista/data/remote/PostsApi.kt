@@ -56,6 +56,12 @@ interface PostsApi {
         @Path("postId") postId: String
     ): Response<MessageResponse>
 
+    @PUT("post/{postId}")
+    suspend fun editPost(
+        @Path("postId") postId: String,
+        @Body post: RequestBody
+    ): Response<MessageResponse>
+
     @POST(BASE_URL)
     suspend fun createPost(
         @Body post: RequestBody

@@ -22,6 +22,12 @@ interface PostsRepository {
 
     suspend fun createPost(content: String, category: String): Resource<CreatePostResponse>
 
+    suspend fun editPost(
+        postId: String,
+        content: String,
+        category: String
+    ): Resource<MessageResponse>
+
     suspend fun likePost(postId: String): Resource<MessageResponse>
 
     suspend fun dislikePost(postId: String): Resource<MessageResponse>

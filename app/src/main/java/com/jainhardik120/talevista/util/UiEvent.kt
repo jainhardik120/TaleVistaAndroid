@@ -5,5 +5,7 @@ sealed class UiEvent {
     data class ShowSnackbar(
         val message: String,
         val action: String? = null
-    ): UiEvent()
+    ) : UiEvent()
 }
+
+const val NAVIGATE_UP_ROUTE = "NAVIGATE_BACK"

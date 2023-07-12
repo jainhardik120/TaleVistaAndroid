@@ -37,10 +37,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.jainhardik120.talevista.R
 import com.jainhardik120.talevista.ui.components.CustomLargeAppBar
 import com.jainhardik120.talevista.ui.components.CustomScrollableTabRow
 import com.jainhardik120.talevista.ui.components.PaginatingColumn
@@ -93,22 +95,21 @@ fun PostsScreen(viewModel: PostsScreenViewModel, navController: NavController) {
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(10.dp),
+                            .height(64.dp)
+                            .padding(horizontal = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = {
-                            viewModel.onEvent(PostsScreenEvent.ProfileLogoClicked)
-                        }) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .clip(RoundedCornerShape(100))
-                            ) {
-                                AsyncImage(
-                                    model = viewModel.state.profileImageUrl,
-                                    contentDescription = "ProfileIcon"
-                                )
-                            }
+                        Box(modifier = Modifier
+                            .size(40.dp)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(100))
+                            .clickable {
+                                viewModel.onEvent(PostsScreenEvent.ProfileLogoClicked)
+                            }) {
+                            AsyncImage(
+                                model = viewModel.state.profileImageUrl,
+                                contentDescription = "ProfileIcon"
+                            )
                         }
                         Row(
                             Modifier
@@ -118,7 +119,10 @@ fun PostsScreen(viewModel: PostsScreenViewModel, navController: NavController) {
                             horizontalArrangement = Arrangement.SpaceAround,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "Talevista", style = MaterialTheme.typography.headlineLarge)
+                            Text(
+                                text = stringResource(R.string.app_name),
+                                style = MaterialTheme.typography.titleLarge
+                            )
                         }
                         IconButton(onClick = {
                             navController.navigate(HomeScreenRoutes.SearchScreen.route)
@@ -141,6 +145,7 @@ fun PostsScreen(viewModel: PostsScreenViewModel, navController: NavController) {
                     }
                 },
                 lowerBarHeight = 48.dp,
+                upperBarHeight = 64.dp,
                 scrollBehavior = topAppBarScrollBehavior
             )
         },
@@ -155,7 +160,6 @@ fun PostsScreen(viewModel: PostsScreenViewModel, navController: NavController) {
             }
         }
     ) { paddingValues ->
-
         PaginatingColumn(
             listState = viewModel.listState,
             lazyListState = lazyListState,
@@ -227,6 +231,7 @@ fun PostsScreen(viewModel: PostsScreenViewModel, navController: NavController) {
                             modifier = Modifier.fillMaxWidth(),
                             maxLines = 4
                         )
+
                     }
                     Divider()
                 }

@@ -4,26 +4,31 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
+import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
+import com.jainhardik120.talevista.util.NAVIGATE_UP_ROUTE
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
-    private val postsRepository: PostsRepository
+    private val postsRepository: PostsRepository,
+    private val savedStateHandle: SavedStateHandle,
+    private val authController: AuthController
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "CreatePostViewModel"
+    }
+
     var state by mutableStateOf(CreatePostState())
 
     private val _uiEvent = Channel<UiEvent>()
@@ -36,14 +41,58 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
-    fun setCategories(categories: List<CategoriesItem>) {
-        state = state.copy(categories = categories)
+    private fun <T> handleRepositoryResponse(
+        call: suspend () -> Resource<T>, onError: (String?) -> Unit = {
+            sendUiEvent(UiEvent.ShowSnackbar(message = it ?: "Unknown Error"))
+        }, onSuccess: (T) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            when (val response = call()) {
+                is Resource.Error -> {
+                    onError(response.message)
+                }
+
+                is Resource.Success -> {
+                    if (response.data != null) {
+                        Log.d(TAG, "handleRepositoryResponse: Successful Execution")
+                        onSuccess(response.data)
+                    }
+                }
+            }
+        }
     }
 
-
-    private fun RequestBody(vararg pairs: Pair<String, String>): RequestBody {
-        return JSONObject(pairs.toMap()).toString()
-            .toRequestBody("application/json".toMediaTypeOrNull())
+    init {
+        handleRepositoryResponse(call = { postsRepository.getCategories() },
+            onSuccess = { categories ->
+                state = state.copy(categories = categories)
+                val postId = savedStateHandle.get<String>("postId")
+                if (postId != null) {
+                    state = state.copy(postId = postId, isNewPost = false)
+                    handleRepositoryResponse(call = { postsRepository.getSinglePost(postId) },
+                        onSuccess = { post ->
+                            if (post.post.author._id != authController.getUserId()) {
+                                sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
+                            }
+                            val index = categories.indexOfFirst {
+                                it.shortName == post.post.category
+                            }
+                            if (index == -1) {
+                                sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
+                            } else {
+                                state = state.copy(
+                                    postContent = post.post.content, selectedCategory = index
+                                )
+                            }
+                        },
+                        onError = {
+                            sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
+                        })
+                }
+            },
+            onError = {
+                sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
+            })
     }
 
     fun onEvent(event: CreatePostsEvent) {
@@ -58,26 +107,24 @@ class CreatePostViewModel @Inject constructor(
 
             CreatePostsEvent.SendButtonClicked -> {
                 if (state.postContent.isNotBlank()) {
-                    viewModelScope.launch {
-                        when (val result = postsRepository.createPost(
-                            state.postContent,
-                            state.categories[state.selectedCategory].shortName
-                        )) {
-                            is Resource.Error -> {
-                                sendUiEvent(UiEvent.ShowSnackbar(result.message ?: "Unknown Error"))
-                            }
-
-                            is Resource.Success -> {
-                                val message = result.data?.message
-                                if (message != null) {
-                                    sendUiEvent(UiEvent.ShowSnackbar(message))
-                                }
-                            }
+                    handleRepositoryResponse(call = {
+                        if (state.isNewPost) {
+                            postsRepository.createPost(
+                                content = state.postContent,
+                                category = state.categories[state.selectedCategory].shortName
+                            )
+                        } else {
+                            postsRepository.editPost(
+                                postId = state.postId,
+                                category = state.categories[state.selectedCategory].shortName,
+                                content = state.postContent
+                            )
                         }
-                    }
+                    }, onSuccess = {
+                        sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
+                    })
                 }
             }
-
         }
     }
 }

@@ -2,18 +2,15 @@ package com.jainhardik120.talevista.ui.presentation.home
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.jainhardik120.talevista.ui.presentation.home.createpost.CreatePostScreen
@@ -29,12 +26,9 @@ import com.jainhardik120.talevista.ui.presentation.home.search.SearchViewModel
 import com.jainhardik120.talevista.util.UiEvent
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.Navigate) -> Unit) {
     val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
     val searchViewModel = hiltViewModel<SearchViewModel>()
     val hostState = remember { SnackbarHostState() }
     LaunchedEffect(key1 = true, block = {
@@ -50,53 +44,57 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel(), navigateUp: (UiEvent.
             }
         }
     })
-        Column(
-            Modifier.fillMaxSize()
+    Column(
+        Modifier.fillMaxSize()
+    ) {
+        NavHost(
+            navController = navController,
+            route = "home_graph",
+            startDestination = HomeScreenRoutes.PostsScreen.route
         ) {
-            NavHost(
-                navController = navController,
-                route = "home_graph",
-                startDestination = HomeScreenRoutes.PostsScreen.route
-            ) {
-                composable(route = HomeScreenRoutes.PostsScreen.route) {
-                    val postsScreenViewModel: PostsScreenViewModel = hiltViewModel()
-                    PostsScreen(postsScreenViewModel, navController)
-                }
-                composable(
-                    route = HomeScreenRoutes.ProfileScreen.route + "/{userId}", arguments = listOf(
-                        navArgument("userId") {
-                            type = NavType.StringType
-                            nullable = false
-                        }
-                    )
-                ) {
-                    val profileScreenViewModel: ProfileScreenViewModel = hiltViewModel()
-                    ProfileScreen(profileScreenViewModel, navController)
-                }
-                composable(route = HomeScreenRoutes.SearchScreen.route) {
-                    SearchScreen(viewModel = searchViewModel, navController = navController)
-                }
-                composable(route = HomeScreenRoutes.CreatePostScreen.route) {
-                    val createPostsScreenViewModel: CreatePostViewModel = hiltViewModel()
-                    CreatePostScreen(
-                        createPostsScreenViewModel,
-                        viewModel.state,
-                        hostState,
-                        navController
-                    )
-                }
-                composable(
-                    route = HomeScreenRoutes.SinglePostScreen.route + "/{postId}",
-                    arguments = listOf(navArgument("postId") {
+            composable(route = HomeScreenRoutes.PostsScreen.route) {
+                val postsScreenViewModel: PostsScreenViewModel = hiltViewModel()
+                PostsScreen(postsScreenViewModel, navController)
+            }
+            composable(
+                route = HomeScreenRoutes.ProfileScreen.route + "/{userId}", arguments = listOf(
+                    navArgument("userId") {
                         type = NavType.StringType
                         nullable = false
-                    })
-                ) {
-                    val postViewModel: PostViewModel = hiltViewModel()
-                    PostScreen(postViewModel, navController)
-                }
+                    }
+                )
+            ) {
+                val profileScreenViewModel: ProfileScreenViewModel = hiltViewModel()
+                ProfileScreen(profileScreenViewModel, navController)
+            }
+            composable(route = HomeScreenRoutes.SearchScreen.route) {
+                SearchScreen(viewModel = searchViewModel, navController = navController)
+            }
+            composable(route = HomeScreenRoutes.CreatePostScreen.route + "?postId={postId}",
+                arguments = listOf(
+                    navArgument("postId") {
+                        type = NavType.StringType
+                        nullable = true
+                    }
+                )) {
+                val createPostsScreenViewModel: CreatePostViewModel = hiltViewModel()
+                CreatePostScreen(
+                    createPostsScreenViewModel,
+                    navController
+                )
+            }
+            composable(
+                route = HomeScreenRoutes.SinglePostScreen.route + "/{postId}",
+                arguments = listOf(navArgument("postId") {
+                    type = NavType.StringType
+                    nullable = false
+                })
+            ) {
+                val postViewModel: PostViewModel = hiltViewModel()
+                PostScreen(postViewModel, navController)
             }
         }
+    }
 
 }
 

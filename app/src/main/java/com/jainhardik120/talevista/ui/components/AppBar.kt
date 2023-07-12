@@ -54,11 +54,9 @@ fun CustomLargeAppBar(
     val pinnedHeight: Dp = lowerBarHeight
     val pinnedHeightPx: Float
     val maxHeightPx: Float
-    val titleBottomPaddingPx: Int
     LocalDensity.current.run {
         pinnedHeightPx = pinnedHeight.toPx()
         maxHeightPx = maxHeight.toPx()
-        titleBottomPaddingPx = bottomPadding.roundToPx()
     }
     SideEffect {
         if (scrollBehavior?.state?.heightOffsetLimit != pinnedHeightPx - maxHeightPx) {
@@ -99,7 +97,7 @@ fun CustomLargeAppBar(
                     ?: 0f),
                 title = upperBar,
                 titleAlpha = bottomTitleAlpha,
-                titleBottomPadding = titleBottomPaddingPx,
+                titleBottomPadding = 0,
                 hideTitleSemantics = hideBottomRowSemantics
             )
             TopAppBarLayout(

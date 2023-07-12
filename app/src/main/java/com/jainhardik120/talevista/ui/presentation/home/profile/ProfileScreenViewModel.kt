@@ -210,6 +210,14 @@ class ProfileScreenViewModel @Inject constructor(
             is ProfileScreenEvent.CardEvent -> {
                 onPostCardEvent(event.event, event.post, event.index)
             }
+
+            ProfileScreenEvent.MoreIconClicked -> {
+                state = state.copy(menuExpanded = !state.menuExpanded)
+            }
+
+            ProfileScreenEvent.DismissMenu -> {
+                state = state.copy(menuExpanded = false)
+            }
         }
     }
 
@@ -218,4 +226,7 @@ class ProfileScreenViewModel @Inject constructor(
 sealed class ProfileScreenEvent {
     data class CardEvent(val event: PostCardEvent, val post: Post, val index: Int) :
         ProfileScreenEvent()
+
+    object MoreIconClicked : ProfileScreenEvent()
+    object DismissMenu : ProfileScreenEvent()
 }

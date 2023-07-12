@@ -62,6 +62,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.jainhardik120.talevista.data.remote.dto.CommentsItem
 import com.jainhardik120.talevista.data.remote.dto.SinglePost
+import com.jainhardik120.talevista.util.NAVIGATE_UP_ROUTE
 import com.jainhardik120.talevista.util.UiEvent
 import kotlinx.coroutines.launch
 
@@ -73,7 +74,7 @@ fun PostScreen(viewModel: PostViewModel, navController: NavController) {
         viewModel.uiEvent.collect {
             when (it) {
                 is UiEvent.Navigate -> {
-                    if (it.route == "NAVIGATE_BACK") {
+                    if (it.route == NAVIGATE_UP_ROUTE) {
                         navController.navigateUp()
                     } else {
                         navController.navigate(it.route)
@@ -144,6 +145,7 @@ fun PostScreen(viewModel: PostViewModel, navController: NavController) {
                                             text = { Text("Edit") },
                                             onClick = {
                                                 expanded = false
+                                                viewModel.onEvent(PostScreenEvent.EditPostButtonClicked)
                                             },
                                             leadingIcon = {
                                                 Icon(
@@ -210,7 +212,6 @@ fun PostScreen(viewModel: PostViewModel, navController: NavController) {
                         }
                         item(key = "POST_FOOTER_CONTENT") {
                             Row {
-                                Text(text = "Like")
                             }
                         }
                         item {

@@ -90,6 +90,21 @@ class PostsRepositoryImpl @Inject constructor(
         ).flow
     }
 
+    override suspend fun editPost(
+        postId: String,
+        content: String,
+        category: String
+    ): Resource<MessageResponse> {
+        return handleApiCall {
+            api.editPost(
+                postId = postId, post = RequestBody(
+                    Pair("content", content),
+                    Pair("category", category)
+                )
+            )
+        }
+    }
+
     override suspend fun getPostsCustom(page: Int, query: PostsQuery): Flow<Posts> = flow {
         try {
             emit(
