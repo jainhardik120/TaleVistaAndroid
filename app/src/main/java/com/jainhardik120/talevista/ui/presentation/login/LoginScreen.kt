@@ -24,9 +24,11 @@ import androidx.navigation.compose.rememberNavController
 import com.jainhardik120.talevista.R
 import com.jainhardik120.talevista.ui.presentation.Screen
 import com.jainhardik120.talevista.ui.presentation.login.components.EmailLoginScreen
+import com.jainhardik120.talevista.ui.presentation.login.components.ForgotPasswordScreen
 import com.jainhardik120.talevista.ui.presentation.login.components.RegisterMailScreen
 import com.jainhardik120.talevista.ui.presentation.login.components.RegisterPasswordScreen
 import com.jainhardik120.talevista.ui.presentation.login.components.RegisterUsernameScreen
+import com.jainhardik120.talevista.util.NAVIGATE_UP_ROUTE
 import com.jainhardik120.talevista.util.UiEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,8 +42,11 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navigateUp: (String
                 is UiEvent.Navigate -> {
                     if (it.route == Screen.HomeScreen.route) {
                         navigateUp(it.route)
+                    } else if (it.route == NAVIGATE_UP_ROUTE) {
+                        navController.navigateUp()
                     } else {
                         navController.navigate(it.route)
+
                     }
                 }
 
@@ -100,7 +105,7 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navigateUp: (String
                         )
                     }
                     composable(route = LoginScreenRoutes.ForgotPasswordScreen.route) {
-
+                        ForgotPasswordScreen(onEvent = viewModel::onEvent, state = viewModel.state)
                     }
                 }
             }

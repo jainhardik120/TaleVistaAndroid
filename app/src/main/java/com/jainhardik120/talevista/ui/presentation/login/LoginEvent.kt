@@ -7,6 +7,7 @@ import androidx.activity.result.IntentSenderRequest
 
 sealed class LoginEvent {
     data class LoginMailChanged(val email: String) : LoginEvent()
+    data class ResetMailChanged(val email: String) : LoginEvent()
     data class LoginPasswordChanged(val password: String) : LoginEvent()
     data class RegisterPasswordChanged(val password: String) : LoginEvent()
     data class RegisterUserNameChanged(val username: String) : LoginEvent()
@@ -26,6 +27,7 @@ sealed class LoginEvent {
     object RegisterPasswordButtonClicked : LoginEvent()
     object RegisterUsernameButtonClicked : LoginEvent()
     object ForgotPasswordClicked : LoginEvent()
+    object SendResetMailClicked : LoginEvent()
 }
 
 

@@ -1,5 +1,6 @@
 package com.jainhardik120.talevista.domain.repository
 
+import com.jainhardik120.talevista.data.remote.dto.MessageResponse
 import com.jainhardik120.talevista.data.repository.AuthControllerImpl
 import com.jainhardik120.talevista.util.Resource
 
@@ -42,6 +43,13 @@ interface AuthController {
         gender: String
     ): Resource<Boolean>
 
+    suspend fun sendResetMail(
+        email: String
+    ): Resource<String>
 
+    suspend fun resetPassword(
+        token: String,
+        newPassword: String
+    ): Resource<MessageResponse>
 }
 

@@ -16,6 +16,7 @@ import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.ui.presentation.Screen
+import com.jainhardik120.talevista.util.NAVIGATE_UP_ROUTE
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
 import javax.inject.Inject
 
@@ -296,13 +298,30 @@ class LoginViewModel @Inject constructor(
             LoginEvent.ForgotPasswordClicked -> {
                 sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.ForgotPasswordScreen.route))
             }
+
+            is LoginEvent.ResetMailChanged -> {
+                state = state.copy(resetMail = event.email)
+            }
+
+            LoginEvent.SendResetMailClicked -> {
+                if (state.resetMail.isNotEmpty()) {
+                    handleRepositoryResponse(
+                        call = { authController.sendResetMail(state.resetMail) },
+                        onSuccess = {
+                            state = state.copy(resetMail = "")
+                            sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
+                            sendUiEvent(UiEvent.ShowSnackbar("Mail with instructions sent"))
+                        }
+                    )
+                }
+            }
         }
     }
 
     private fun dobString(milliseconds: Long): String {
         val date = Date(milliseconds)
         Log.d("TAG", "dobString: $milliseconds")
-        val sdf = SimpleDateFormat("yyyy-MM-dd")
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         sdf.timeZone = TimeZone.getTimeZone("UTC")
 
         return sdf.format(date)

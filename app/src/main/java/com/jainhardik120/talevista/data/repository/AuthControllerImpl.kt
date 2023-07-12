@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.jainhardik120.talevista.data.remote.TaleVistaApi
 import com.jainhardik120.talevista.data.remote.dto.LoginResponse
+import com.jainhardik120.talevista.data.remote.dto.MessageResponse
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.UserPreferences
 import com.jainhardik120.talevista.util.Resource
@@ -74,6 +75,28 @@ class AuthControllerImpl @Inject constructor(
             Log.d(TAG, "handleApiCall: ${e.message}")
             Resource.Error(e.message ?: "Unknown Error")
         }
+    }
+
+    override suspend fun sendResetMail(email: String): Resource<String> {
+        return handleApiCall(call = { api.sendPasswordResetMail(email) }, onSuccess = {
+            Resource.Success(it.data.messageId)
+        })
+    }
+
+    override suspend fun resetPassword(
+        token: String,
+        newPassword: String
+    ): Resource<MessageResponse> {
+        return handleApiCall(call = {
+            api.resetPassword(
+                RequestBody(
+                    Pair("token", token),
+                    Pair("newPassword", newPassword)
+                )
+            )
+        }, onSuccess = {
+            Resource.Success(it)
+        })
     }
 
     private fun storeUserInfo(loginResponse: LoginResponse?) {

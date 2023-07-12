@@ -63,3 +63,46 @@ fun RegisterMailScreen(
         }
     }
 }
+
+@Composable
+fun ForgotPasswordScreen(
+    onEvent: (LoginEvent) -> Unit,
+    state: LoginState
+) {
+    Column(
+        Modifier
+            .padding(horizontal = 8.dp)
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            value = state.resetMail,
+            onValueChange = { onEvent(LoginEvent.ResetMailChanged(it)) },
+            label = {
+                Text(text = "Email Address")
+            },
+            textStyle = MaterialTheme.typography.bodyMedium,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Email
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    onEvent(LoginEvent.SendResetMailClicked)
+                }
+            ),
+            singleLine = true
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+            onClick = { onEvent(LoginEvent.SendResetMailClicked) }) {
+            Text(text = "Reset Password")
+        }
+    }
+}

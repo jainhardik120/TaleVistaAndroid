@@ -2,6 +2,7 @@ package com.jainhardik120.talevista.data.remote
 
 import com.jainhardik120.talevista.data.remote.dto.LoginResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
+import com.jainhardik120.talevista.data.remote.dto.ResetMailResponse
 import com.jainhardik120.talevista.util.BASE_SERVER_URL
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -36,4 +37,11 @@ interface TaleVistaApi {
 
     @GET("sendVerificationMail/{userId}")
     suspend fun sendVerificationMail(@Path("userId") userId: String): Response<MessageResponse>
+
+    @GET("sendResetMail/{mail}")
+    suspend fun sendPasswordResetMail(@Path("mail") email: String): Response<ResetMailResponse>
+
+    @POST("resetPassword")
+    suspend fun resetPassword(@Body body: RequestBody): Response<MessageResponse>
+
 }
