@@ -11,6 +11,8 @@ interface AuthController {
 
     fun getUserInfo(key: UserPreferences): String?
 
+    fun logOutCurrentUser()
+
     suspend fun loginWithEmailPassword(email: String, password: String): Resource<String>
 
     suspend fun checkEmail(email: String): Resource<Boolean>
@@ -39,5 +41,7 @@ interface AuthController {
         picture: String,
         gender: String
     ): Resource<Boolean>
+
+
 }
 

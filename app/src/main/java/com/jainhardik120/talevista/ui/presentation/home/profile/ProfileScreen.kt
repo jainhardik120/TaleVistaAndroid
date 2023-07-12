@@ -65,20 +65,30 @@ import com.jainhardik120.talevista.R
 import com.jainhardik120.talevista.data.remote.dto.User
 import com.jainhardik120.talevista.ui.components.PaginatingColumn
 import com.jainhardik120.talevista.ui.components.PostCard
+import com.jainhardik120.talevista.ui.presentation.Screen
 import com.jainhardik120.talevista.ui.presentation.home.posts.ListState
+import com.jainhardik120.talevista.util.NAVIGATE_LOGIN_ROUTE
 import com.jainhardik120.talevista.util.UiEvent
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ProfileScreen(viewModel: ProfileScreenViewModel, navController: NavHostController) {
+fun ProfileScreen(
+    viewModel: ProfileScreenViewModel,
+    navController: NavHostController,
+    navigateUp: (UiEvent.Navigate) -> Unit
+) {
     LaunchedEffect(key1 = Unit, block = {
         viewModel.init()
         viewModel.uiEvent.collect {
             when (it) {
                 is UiEvent.Navigate -> {
-                    navController.navigate(it.route)
+                    if (it.route == NAVIGATE_LOGIN_ROUTE) {
+                        navigateUp(UiEvent.Navigate(Screen.LoginScreen.route))
+                    } else {
+                        navController.navigate(it.route)
+                    }
                 }
 
                 is UiEvent.ShowSnackbar -> {
@@ -178,9 +188,10 @@ fun ProfileScreen(viewModel: ProfileScreenViewModel, navController: NavHostContr
                                 ) {
 
                                     DropdownMenuItem(
-                                        text = { Text("Report") },
+                                        text = { Text("Logout") },
                                         onClick = {
                                             viewModel.onEvent(ProfileScreenEvent.DismissMenu)
+                                            viewModel.onEvent(ProfileScreenEvent.LogoutItemClicked)
                                         },
                                         leadingIcon = {
                                             Icon(

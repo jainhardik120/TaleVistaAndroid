@@ -30,6 +30,12 @@ class AuthControllerImpl @Inject constructor(
         private const val USER_ID_KEY = "USER_ID"
     }
 
+    override fun logOutCurrentUser() {
+        with(sharedPreferences.edit()) {
+            this.clear()
+        }.apply()
+    }
+
     private fun <T> ResponseBody?.toResource(
         onBody: (JSONObject) -> Resource<T> = {
             Log.d(TAG, "toResource: ${it.getString("error")}")

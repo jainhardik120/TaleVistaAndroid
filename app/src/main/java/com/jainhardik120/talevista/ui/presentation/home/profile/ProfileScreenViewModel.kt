@@ -15,6 +15,7 @@ import com.jainhardik120.talevista.domain.repository.UserRepository
 import com.jainhardik120.talevista.ui.components.PostCardEvent
 import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
 import com.jainhardik120.talevista.ui.presentation.home.posts.ListState
+import com.jainhardik120.talevista.util.NAVIGATE_LOGIN_ROUTE
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -218,6 +219,11 @@ class ProfileScreenViewModel @Inject constructor(
             ProfileScreenEvent.DismissMenu -> {
                 state = state.copy(menuExpanded = false)
             }
+
+            ProfileScreenEvent.LogoutItemClicked -> {
+                authController.logOutCurrentUser()
+                sendUiEvent(UiEvent.Navigate(NAVIGATE_LOGIN_ROUTE))
+            }
         }
     }
 
@@ -229,4 +235,6 @@ sealed class ProfileScreenEvent {
 
     object MoreIconClicked : ProfileScreenEvent()
     object DismissMenu : ProfileScreenEvent()
+    object LogoutItemClicked : ProfileScreenEvent()
+
 }

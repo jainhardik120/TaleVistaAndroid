@@ -9,3 +9,5 @@ sealed class UiEvent {
 }
 
 const val NAVIGATE_UP_ROUTE = "NAVIGATE_BACK"
+
+const val NAVIGATE_LOGIN_ROUTE = "LOGIN_ROUTE"

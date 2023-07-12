@@ -17,6 +17,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
@@ -88,6 +89,9 @@ class CreatePostViewModel @Inject constructor(
                         onError = {
                             sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
                         })
+                } else {
+                    val numCategories = categories.size
+                    state = state.copy(selectedCategory = Random.nextInt(until = numCategories))
                 }
             },
             onError = {
