@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val postsRepository: PostsRepository,
-    private val authController: AuthController
+    authController: AuthController
 ) : ViewModel() {
     var state by mutableStateOf(HomeState())
 

@@ -68,7 +68,7 @@ class PostsScreenViewModel @Inject constructor(
     init {
         state =
             state.copy(profileImageUrl = authController.getUserInfo(UserPreferences.PICTURE) ?: "")
-        handleRepositoryResponse({ postsRepository.getCategories() }) { it ->
+        handleRepositoryResponse({ postsRepository.getCategories() }) {
             it.forEachIndexed { index, item ->
                 categoryMap[item.shortName] = Pair(item.name, index + 1)
             }
@@ -99,7 +99,7 @@ class PostsScreenViewModel @Inject constructor(
     private fun getPosts(category: String? = null) = viewModelScope.launch {
         if (page == 1 || (page != 1 && canPaginate) && listState == ListState.IDLE) {
             listState = if (page == 1) ListState.LOADING else ListState.PAGINATING
-            postsRepository.getPostsCustom(page, PostsQuery(category = category)).collect() {
+            postsRepository.getPostsCustom(page, PostsQuery(category = category)).collect {
                 if (it.currentPage != 0) {
                     canPaginate = it.currentPage < it.totalPages
                     if (page == 1) {
@@ -231,7 +231,7 @@ class PostsScreenViewModel @Inject constructor(
 
     private fun timeAgoText(text: String): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        sdf.timeZone = TimeZone.getTimeZone("GMT");
+        sdf.timeZone = TimeZone.getTimeZone("GMT")
         try {
             val date: Date? = sdf.parse(text)
             if (date != null) {

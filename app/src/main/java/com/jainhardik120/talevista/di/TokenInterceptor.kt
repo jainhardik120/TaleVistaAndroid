@@ -1,4 +1,4 @@
-package com.jainhardik120.talevista.data.remote
+package com.jainhardik120.talevista.di
 
 import android.content.SharedPreferences
 import okhttp3.Interceptor

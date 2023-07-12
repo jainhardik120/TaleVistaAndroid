@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.jainhardik120.talevista.data.remote.PostsApi
 import com.jainhardik120.talevista.data.remote.TaleVistaApi
-import com.jainhardik120.talevista.data.remote.TokenInterceptor
 import com.jainhardik120.talevista.data.remote.UsersApi
 import dagger.Module
 import dagger.Provides
