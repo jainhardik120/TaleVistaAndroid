@@ -203,7 +203,6 @@ class AuthControllerImpl @Inject constructor(
         password: String,
         username: String,
         firstName: String,
-        lastName: String,
         dob: String,
         picture: String,
         gender: String
@@ -214,8 +213,7 @@ class AuthControllerImpl @Inject constructor(
                     Pair("email", email),
                     Pair("password", password),
                     Pair("username", username),
-                    Pair("first_name", firstName),
-                    Pair("last_name", lastName),
+                    Pair("name", firstName),
                     Pair("picture", picture),
                     Pair("dob", dob),
                     Pair("gender", gender)
@@ -270,7 +268,6 @@ class AuthControllerImpl @Inject constructor(
         idToken: String,
         username: String,
         firstName: String,
-        lastName: String,
         dob: String,
         picture: String,
         gender: String
@@ -280,8 +277,7 @@ class AuthControllerImpl @Inject constructor(
                 RequestBody(
                     Pair("idToken", idToken),
                     Pair("username", username),
-                    Pair("first_name", firstName),
-                    Pair("last_name", lastName),
+                    Pair("name", firstName),
                     Pair("picture", picture),
                     Pair("dob", dob),
                     Pair("gender", gender),

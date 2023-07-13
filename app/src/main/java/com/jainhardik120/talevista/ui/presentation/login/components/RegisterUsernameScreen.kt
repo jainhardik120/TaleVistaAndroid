@@ -1,12 +1,24 @@
 package com.jainhardik120.talevista.ui.presentation.login.components
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -21,6 +33,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,17 +48,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.jainhardik120.talevista.ui.presentation.login.Gender
 import com.jainhardik120.talevista.ui.presentation.login.LoginEvent
 import com.jainhardik120.talevista.ui.presentation.login.LoginState
+import com.jainhardik120.talevista.util.BASE_SERVER_URL
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -54,6 +72,19 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
+
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun RegisterUsernamePreview() {
+    RegisterUsernameScreen(
+        onEvent = {},
+        state = LoginState(),
+        username = "_.hardikj",
+        usernameAvailable = true
+    )
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -66,6 +97,82 @@ fun RegisterUsernameScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     var genderMenuExpanded by remember { mutableStateOf(false) }
     var datePickerExpanded by remember { mutableStateOf(false) }
+    var bottomSheetExpanded by remember { mutableStateOf(false) }
+
+    val images by remember {
+        mutableStateOf(
+            listOf(
+                "avatar1).png",
+                "avatar2).png",
+                "avatar3).png",
+                "avatar4).png",
+                "avatar5).png",
+                "avatar6).png",
+                "avatar7).png",
+                "avatar8).png",
+                "avatar9).png",
+                "avatar10).png",
+                "avatar11).png",
+                "avatar12).png",
+                "avatar13).png",
+                "avatar14).png",
+                "avatar15).png",
+                "avatar16).png",
+                "avatar17).png",
+                "avatar18).png",
+                "avatar19).png",
+                "avatar20).png",
+                "avatar21).png",
+                "avatar22).png",
+                "avatar23).png",
+                "avatar24).png",
+                "avatar25).png",
+                "avatar26).png",
+                "avatar27).png",
+                "avatar28).png",
+                "avatar29).png",
+                "avatar30).png"
+            ).map {
+                "$BASE_SERVER_URL/$it"
+            }
+        )
+    }
+
+    if (bottomSheetExpanded) {
+        ModalBottomSheet(onDismissRequest = { bottomSheetExpanded = false }, dragHandle = null) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(6),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                content = {
+                    itemsIndexed(images) { _, item ->
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = item,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp)
+                                    .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                                    .clip(
+                                        CircleShape
+                                    )
+                                    .clickable {
+                                        bottomSheetExpanded = false
+                                        onEvent(LoginEvent.ImageUrlChanged(item))
+                                    },
+                                contentDescription = "Profile Icon"
+                            )
+                        }
+                    }
+                })
+        }
+    }
     val datePickerState = rememberDatePickerState()
     val scope = rememberCoroutineScope()
 
@@ -146,38 +253,40 @@ fun RegisterUsernameScreen(
             })
         }
     }
+
     Column(
         Modifier
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 24.dp)
             .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        OutlinedTextField(
-            value = state.firstName,
-            onValueChange = {
-                onEvent(LoginEvent.RegisterFNameChanged(it))
-            },
-            label = {
-                Text(text = "First Name")
-            },
-            textStyle = MaterialTheme.typography.bodyMedium,
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Next,
-                keyboardType = KeyboardType.Text
-            ),
-            keyboardActions = KeyboardActions(
-                onNext = {
 
-                }
-            ),
-            singleLine = true
-        )
+        Spacer(modifier = Modifier.height(64.dp))
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            AsyncImage(
+                model = state.picture,
+                modifier = Modifier
+                    .size(100.dp)
+                    .weight(3f)
+                    .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                    .border(width = 1.dp, color = Color.LightGray, shape = CircleShape)
+                    .padding(3.dp)
+                    .clip(
+                        CircleShape
+                    )
+                    .clickable {
+                        bottomSheetExpanded = true
+                    },
+                contentDescription = "Profile Icon"
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
-            value = state.lastName,
-            onValueChange = { onEvent(LoginEvent.RegisterLNameChanged(it)) },
+            value = state.name,
+            onValueChange = { onEvent(LoginEvent.RegisterNameChanged(it)) },
             label = {
-                Text(text = "Last Name")
+                Text(text = "Name")
             },
             textStyle = MaterialTheme.typography.bodyMedium,
             keyboardOptions = KeyboardOptions.Default.copy(
@@ -193,69 +302,81 @@ fun RegisterUsernameScreen(
                     }
                 }
             ),
+            modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
-
-        ExposedDropdownMenuBox(
-            expanded = genderMenuExpanded,
-            onExpandedChange = {
-                genderMenuExpanded = !genderMenuExpanded
-            }
-        ) {
-
-            OutlinedTextField(
-                value = state.gender.displayName,
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier.menuAnchor(),
-                label = {
-                    Text(
-                        text = "Gender"
-                    )
-                },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderMenuExpanded) })
-
-            ExposedDropdownMenu(
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth()) {
+            ExposedDropdownMenuBox(
                 expanded = genderMenuExpanded,
-                onDismissRequest = { genderMenuExpanded = false }) {
-                genderEntries.forEach {
-                    DropdownMenuItem(text = { Text(it.displayName) }, onClick = {
-                        genderMenuExpanded = false
-                        onEvent(LoginEvent.GenderChanged(it))
-                        if (state.dob == 0L) {
-                            scope.launch {
-                                delay(200)
-                                dobFocusRequester.requestFocus()
+                onExpandedChange = {
+                    genderMenuExpanded = !genderMenuExpanded
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+
+                OutlinedTextField(
+                    value = state.gender?.displayName ?: "Select",
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier.menuAnchor(),
+                    label = {
+                        Text(
+                            text = "Gender"
+                        )
+                    },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = genderMenuExpanded) })
+
+                ExposedDropdownMenu(
+                    expanded = genderMenuExpanded,
+                    onDismissRequest = { genderMenuExpanded = false }) {
+                    genderEntries.forEach {
+                        DropdownMenuItem(text = { Text(it.displayName) }, onClick = {
+                            genderMenuExpanded = false
+                            onEvent(LoginEvent.GenderChanged(it))
+                            if (state.dob == 0L) {
+                                scope.launch {
+                                    delay(200)
+                                    dobFocusRequester.requestFocus()
+                                }
                             }
-                        }
-                    })
+                        })
+                    }
                 }
             }
-        }
-        OutlinedTextField(
-            value = dateString.value,
-            onValueChange = { },
-            label = {
-                Text(text = "Date Of Birth")
-            },
-            textStyle = MaterialTheme.typography.bodyMedium,
-            trailingIcon = {
-                IconButton(onClick = {
-                    datePickerExpanded = !datePickerExpanded
-                }) {
-                    Icon(Icons.Rounded.CalendarMonth, contentDescription = "Calendar Icon")
-                }
-            },
-            modifier = Modifier
-                .focusRequester(dobFocusRequester)
-                .onFocusEvent {
-                    if (it.isFocused) {
-                        datePickerExpanded = true
+            Spacer(Modifier.width(16.dp))
+            OutlinedTextField(
+                value = dateString.value,
+                onValueChange = { },
+                label = {
+                    Text(text = "Date Of Birth")
+                },
+                textStyle = MaterialTheme.typography.bodyMedium,
+                trailingIcon = {
+                    IconButton(onClick = {
+                        datePickerExpanded = !datePickerExpanded
+                    }) {
+                        Icon(Icons.Rounded.CalendarMonth, contentDescription = "Calendar Icon")
                     }
                 },
-            readOnly = true,
-            singleLine = true
-        )
+                modifier = Modifier
+                    .focusRequester(dobFocusRequester)
+                    .onFocusEvent {
+                        if (it.isFocused) {
+                            datePickerExpanded = true
+                        }
+                    }
+                    .weight(1f)
+                    .fillMaxWidth(),
+                readOnly = true,
+                singleLine = true
+            )
+        }
+
+
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = username,
             onValueChange = { onEvent(LoginEvent.RegisterUserNameChanged(it)) },
@@ -278,12 +399,16 @@ fun RegisterUsernameScreen(
                     if (it.isFocused) {
                         keyboardController?.show()
                     }
-                },
+                }
+                .fillMaxWidth(),
             singleLine = true,
             isError = (username.isNotEmpty() && !usernameAvailable)
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { onEvent(LoginEvent.RegisterUsernameButtonClicked) }) {
+        Button(
+            onClick = { onEvent(LoginEvent.RegisterUsernameButtonClicked) },
+            Modifier.fillMaxWidth()
+        ) {
             Text(text = "Create Account")
         }
     }

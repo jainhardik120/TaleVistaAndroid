@@ -25,7 +25,6 @@ interface AuthController {
         password: String,
         username: String,
         firstName: String,
-        lastName: String,
         dob: String,
         picture: String,
         gender: String
@@ -37,7 +36,6 @@ interface AuthController {
         idToken: String,
         username: String,
         firstName: String,
-        lastName: String,
         dob: String,
         picture: String,
         gender: String

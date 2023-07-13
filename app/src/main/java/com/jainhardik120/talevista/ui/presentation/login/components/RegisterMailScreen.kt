@@ -102,7 +102,7 @@ fun ForgotPasswordScreen(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
             onClick = { onEvent(LoginEvent.SendResetMailClicked) }) {
-            Text(text = "Reset Password")
+            Text(text = "Next")
         }
     }
 }

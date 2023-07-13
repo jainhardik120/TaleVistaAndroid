@@ -1,6 +1,6 @@
 package com.jainhardik120.talevista.ui
 
-import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,20 +45,25 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.jainhardik120.talevista.R
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.ui.theme.TaleVistaTheme
 import com.jainhardik120.talevista.util.Resource
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class PasswordResetActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var authController: AuthController
+
+    fun openMainActivity() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,7 +84,6 @@ class PasswordResetActivity : ComponentActivity() {
                         Surface(
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            val viewModel: PasswordResetViewModel = hiltViewModel()
                             Column(
                                 Modifier.imePadding()
                             ) {
@@ -95,7 +100,36 @@ class PasswordResetActivity : ComponentActivity() {
                                             .padding(horizontal = 8.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
+
+                                        val scope = rememberCoroutineScope()
                                         var newPassword by remember { mutableStateOf("") }
+
+                                        fun resetPassword() {
+                                            scope.launch {
+                                                when (val response = authController.resetPassword(
+                                                    token ?: "",
+                                                    newPassword
+                                                )) {
+                                                    is Resource.Error -> {
+                                                        Toast.makeText(
+                                                            context,
+                                                            response.message,
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
+
+                                                    is Resource.Success -> {
+                                                        Toast.makeText(
+                                                            context,
+                                                            response.data?.message,
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                        openMainActivity()
+                                                    }
+                                                }
+                                            }
+                                        }
+
                                         val showPassword =
                                             rememberSaveable { mutableStateOf(false) }
 
@@ -146,11 +180,7 @@ class PasswordResetActivity : ComponentActivity() {
                                             ),
                                             keyboardActions = KeyboardActions(
                                                 onNext = {
-                                                    viewModel.resetPassword(
-                                                        token ?: "",
-                                                        newPassword,
-                                                        context
-                                                    )
+                                                    resetPassword()
                                                 }
                                             ),
                                             singleLine = true
@@ -160,10 +190,7 @@ class PasswordResetActivity : ComponentActivity() {
                                             .fillMaxWidth()
                                             .padding(horizontal = 16.dp),
                                             onClick = {
-                                                viewModel.resetPassword(
-                                                    token ?: "",
-                                                    newPassword, context
-                                                )
+                                                resetPassword()
                                             }) {
                                             Text(text = "Update Password")
                                         }
@@ -178,21 +205,3 @@ class PasswordResetActivity : ComponentActivity() {
     }
 }
 
-@HiltViewModel
-class PasswordResetViewModel @Inject constructor(
-    private val authController: AuthController
-) : ViewModel() {
-    fun resetPassword(token: String, newPassword: String, context: Context) {
-        viewModelScope.launch {
-            when (val response = authController.resetPassword(token, newPassword)) {
-                is Resource.Error -> {
-                    Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
-                }
-
-                is Resource.Success -> {
-                    Toast.makeText(context, response.data?.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-}

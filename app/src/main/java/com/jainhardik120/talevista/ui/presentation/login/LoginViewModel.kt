@@ -162,8 +162,7 @@ class LoginViewModel @Inject constructor(
                         state = state.copy(googleIdToken = idToken, isGoogleUsed = true)
                         if (userInfo != null) {
                             state = state.copy(
-                                firstName = userInfo.firstName,
-                                lastName = userInfo.lastName
+                                name = "${userInfo.firstName} ${userInfo.lastName}"
                             )
                             sendUiEvent(UiEvent.Navigate(LoginScreenRoutes.RegisterUsernameScreen.route))
                         }
@@ -246,11 +245,10 @@ class LoginViewModel @Inject constructor(
                                     authController.createNewFromGoogleIdToken(
                                         state.googleIdToken,
                                         _username.value,
-                                        state.firstName,
-                                        state.lastName,
+                                        state.name,
                                         dobString(state.dob),
                                         state.picture,
-                                        state.gender.codeName
+                                        state.gender?.codeName ?: ""
                                     )
                                 },
                                 onSuccess = { sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route)) })
@@ -260,11 +258,10 @@ class LoginViewModel @Inject constructor(
                                     state.registerEmail,
                                     state.registerPassword,
                                     _username.value,
-                                    state.firstName,
-                                    state.lastName,
+                                    state.name,
                                     dobString(state.dob),
                                     state.picture,
-                                    state.gender.codeName
+                                    state.gender?.codeName ?: ""
                                 )
                             }, onSuccess = {
                                 sendUiEvent(UiEvent.Navigate(Screen.HomeScreen.route))
@@ -283,13 +280,10 @@ class LoginViewModel @Inject constructor(
                 state = state.copy(gender = event.gender)
             }
 
-            is LoginEvent.RegisterFNameChanged -> {
-                state = state.copy(firstName = event.name)
+            is LoginEvent.RegisterNameChanged -> {
+                state = state.copy(name = event.name)
             }
 
-            is LoginEvent.RegisterLNameChanged -> {
-                state = state.copy(lastName = event.name)
-            }
 
             is LoginEvent.DateOfBirthChanged -> {
                 state = state.copy(dob = event.date)
@@ -314,6 +308,10 @@ class LoginViewModel @Inject constructor(
                         }
                     )
                 }
+            }
+
+            is LoginEvent.ImageUrlChanged -> {
+                state = state.copy(picture = event.url)
             }
         }
     }
