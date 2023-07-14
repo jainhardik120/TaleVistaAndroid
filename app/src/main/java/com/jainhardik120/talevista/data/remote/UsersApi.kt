@@ -3,6 +3,7 @@ package com.jainhardik120.talevista.data.remote
 import com.jainhardik120.talevista.data.remote.dto.Posts
 import com.jainhardik120.talevista.data.remote.dto.SearchResult
 import com.jainhardik120.talevista.data.remote.dto.User
+import com.jainhardik120.talevista.data.remote.dto.UserComments
 import com.jainhardik120.talevista.util.BASE_SERVER_URL
 import retrofit2.Response
 import retrofit2.http.GET
@@ -34,5 +35,13 @@ interface UsersApi {
     suspend fun searchUsers(
         @Query("query") query: String
     ): Response<SearchResult>
+
+
+    @GET("userId/{userId}/comments")
+    suspend fun getUserComments(
+        @Path("userId") userId: String,
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null
+    ): UserComments
 
 }

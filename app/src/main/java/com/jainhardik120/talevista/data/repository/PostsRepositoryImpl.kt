@@ -4,7 +4,7 @@ import android.util.Log
 import com.jainhardik120.talevista.data.remote.PostsApi
 import com.jainhardik120.talevista.data.remote.PostsQuery
 import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
-import com.jainhardik120.talevista.data.remote.dto.CommentsItem
+import com.jainhardik120.talevista.data.remote.dto.Comments
 import com.jainhardik120.talevista.data.remote.dto.CreatePostResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
 import com.jainhardik120.talevista.data.remote.dto.Posts
@@ -137,9 +137,18 @@ class PostsRepositoryImpl @Inject constructor(
         return handleApiCall { api.undislikePost(postId) }
     }
 
-    override suspend fun getPostComments(postId: String): Resource<List<CommentsItem>> {
-        return handleApiCall { api.getPostComments(postId) }
-    }
+    override suspend fun getPostComments(postId: String, page: Int): Flow<Comments> = flow {
+        try {
+            emit(
+                api.getPostComments(
+                    page = page,
+                    postId = postId
+                )
+            )
+        } catch (e: Exception) {
+            emit(Comments(0, emptyList(), 0, 0))
+        }
+    }.flowOn(Dispatchers.IO)
 
     override suspend fun createComment(
         postId: String,

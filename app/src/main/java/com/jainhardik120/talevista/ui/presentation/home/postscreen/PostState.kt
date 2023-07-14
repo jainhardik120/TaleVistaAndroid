@@ -7,5 +7,6 @@ data class PostState(
     val post: SinglePost? = null,
     val isAuthorUser: Boolean = false,
     val comments: List<CommentsItem> = emptyList(),
-    val newCommentContent: String = ""
+    val newCommentContent: String = "",
+    val selfUserPicture: String = ""
 )

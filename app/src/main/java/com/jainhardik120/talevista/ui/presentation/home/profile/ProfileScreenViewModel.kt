@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jainhardik120.talevista.data.remote.PostsQuery
+import com.jainhardik120.talevista.data.remote.dto.Comment
 import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
@@ -18,6 +19,7 @@ import com.jainhardik120.talevista.ui.presentation.home.posts.ListState
 import com.jainhardik120.talevista.util.NAVIGATE_LOGIN_ROUTE
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
+import com.jainhardik120.talevista.util.timeAgoText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,6 +64,14 @@ class ProfileScreenViewModel @Inject constructor(
     private var likedPage by mutableStateOf(1)
     var likedCanPaginate by mutableStateOf(false)
     var likedListState by mutableStateOf(ListState.IDLE)
+
+
+    private val _comments = MutableStateFlow<List<ProfileComment>>(emptyList())
+    val comments: StateFlow<List<ProfileComment>> get() = _comments.asStateFlow()
+
+    private var commentPage by mutableStateOf(1)
+    var commentCanPaginate by mutableStateOf(false)
+    var commentListState by mutableStateOf(ListState.IDLE)
 
     fun getPosts() = viewModelScope.launch {
         if ((page == 1 || (page != 1 && canPaginate) && listState == ListState.IDLE) && state.userId.isNotEmpty()) {
@@ -108,6 +118,30 @@ class ProfileScreenViewModel @Inject constructor(
         }
     }
 
+    fun getComments() = viewModelScope.launch {
+        if ((commentPage == 1 || (commentPage != 1 && commentCanPaginate) && commentListState == ListState.IDLE) && state.userId.isNotEmpty()) {
+            commentListState = if (commentPage == 1) ListState.LOADING else ListState.PAGINATING
+            usersRepository.getCommentsByUser(state.userId, commentPage).collect() { userComments ->
+                if (userComments.currentPage != 0) {
+                    commentCanPaginate = userComments.currentPage < userComments.totalPages
+                    if (commentPage == 1) {
+                        _comments.value = userComments.comments.map { it.toProfileComment() }
+                    } else {
+                        _comments.value =
+                            _comments.value + userComments.comments.map { it.toProfileComment() }
+                    }
+                    commentListState = ListState.IDLE
+                    if (commentCanPaginate) {
+                        commentPage++
+                    }
+                } else {
+                    commentListState =
+                        if (commentPage == 1) ListState.ERROR else ListState.PAGINATION_EXHAUST
+                }
+            }
+        }
+    }
+
 
     private fun <T> handleRepositoryResponse(
         call: suspend () -> Resource<T>, onError: (String?) -> Unit = {
@@ -137,6 +171,25 @@ class ProfileScreenViewModel @Inject constructor(
         loadUser()
         getPosts()
         getLikedPosts()
+        getComments()
+    }
+
+    private fun Comment.toProfileComment(): ProfileComment {
+        return ProfileComment(
+            this._id,
+            timeAgoText(this.createdAt),
+            this.detail,
+            this.dislikedByCurrentUser,
+            this.dislikesCount,
+            this.likedByCurrentUser,
+            this.likesCount,
+            this.post.content.take(200),
+            this.post.author.username,
+            this.post.author._id,
+            this.post.author.picture,
+            this.post._id,
+            timeAgoText(this.post.createdAt)
+        )
     }
 
     private fun loadUser() {
@@ -227,7 +280,24 @@ class ProfileScreenViewModel @Inject constructor(
         }
     }
 
+
 }
+
+data class ProfileComment(
+    val _id: String,
+    val createdAt: String,
+    val commentContent: String,
+    val dislikedByCurrentUser: Boolean,
+    val dislikesCount: Int,
+    val likedByCurrentUser: Boolean,
+    val likesCount: Int,
+    val postContent: String,
+    val postAuthorUsername: String,
+    val postAuthorId: String,
+    val postAuthorPicture: String,
+    val postId: String,
+    val postCreatedAt: String
+)
 
 sealed class ProfileScreenEvent {
     data class CardEvent(val event: PostCardEvent, val post: Post, val index: Int) :

@@ -6,3 +6,11 @@ data class Posts(
     val totalPages: Int,
     val totalPosts: Int
 )
+
+data class Comments(
+    val currentPage: Int,
+    val comments: List<CommentsItem>,
+    val totalPages: Int,
+    val totalPosts: Int
+)
+

@@ -7,14 +7,22 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jainhardik120.talevista.data.remote.dto.Author
+import com.jainhardik120.talevista.data.remote.dto.CommentsItem
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
+import com.jainhardik120.talevista.domain.repository.UserPreferences
 import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
+import com.jainhardik120.talevista.ui.presentation.home.posts.ListState
 import com.jainhardik120.talevista.util.NAVIGATE_UP_ROUTE
 import com.jainhardik120.talevista.util.Resource
 import com.jainhardik120.talevista.util.UiEvent
+import com.jainhardik120.talevista.util.timeAgoText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,6 +40,41 @@ class PostViewModel @Inject constructor(
 
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
+
+    private val _comments = MutableStateFlow<List<CommentsItem>>(emptyList())
+    val comments: StateFlow<List<CommentsItem>> get() = _comments.asStateFlow()
+
+    private var page by mutableStateOf(1)
+    var canPaginate by mutableStateOf(false)
+    var listState by mutableStateOf(ListState.IDLE)
+
+
+    fun getComments() = viewModelScope.launch {
+        if (page == 1 || (page != 1 && canPaginate) && listState == ListState.IDLE) {
+            listState = if (page == 1) ListState.LOADING else ListState.PAGINATING
+            postsRepository.getPostComments(postId, page).collect { it ->
+                if (it.currentPage != 0) {
+                    canPaginate = it.currentPage < it.totalPages
+                    if (page == 1) {
+                        _comments.value = it.comments.map { comment ->
+                            comment.copy(createdAt = timeAgoText(comment.createdAt))
+                        }
+                    } else {
+                        _comments.value = _comments.value + it.comments.map { comment ->
+                            comment.copy(createdAt = timeAgoText(comment.createdAt))
+                        }
+                    }
+                    listState = ListState.IDLE
+                    if (canPaginate) {
+                        page++
+                    }
+                } else {
+                    listState = if (page == 1) ListState.ERROR else ListState.PAGINATION_EXHAUST
+                }
+            }
+        }
+    }
 
     private fun sendUiEvent(event: UiEvent) {
         viewModelScope.launch {
@@ -68,9 +111,9 @@ class PostViewModel @Inject constructor(
                 isAuthorUser = (it.post.author._id == authController.getUserId())
             )
         })
-        handleRepositoryResponse(call = { postsRepository.getPostComments(postId) }, onSuccess = {
-            state = state.copy(comments = it)
-        })
+        getComments()
+        state =
+            state.copy(selfUserPicture = authController.getUserInfo(UserPreferences.PICTURE) ?: "")
     }
 
     fun onEvent(event: PostScreenEvent) {
@@ -82,6 +125,27 @@ class PostViewModel @Inject constructor(
                             postId,
                             state.newCommentContent
                         )
+                    }, onSuccess = {
+                        _comments.value = listOf(
+                            CommentsItem(
+                                _id = it._id,
+                                author = Author(
+                                    authController.getUserId() ?: "",
+                                    "you",
+                                    authController.getUserInfo(UserPreferences.PICTURE) ?: ""
+                                ),
+                                createdAt = "0 seconds ago",
+                                detail = state.newCommentContent,
+                                dislikesCount = 0,
+                                likedByCurrentUser = false,
+                                likesCount = 0,
+                                dislikedByCurrentUser = false,
+                                post = state.post?.post?._id ?: "",
+                                updatedAt = "",
+                                __v = 0
+                            )
+                        ) + _comments.value
+                        state = state.copy(newCommentContent = "")
                     })
                 }
             }

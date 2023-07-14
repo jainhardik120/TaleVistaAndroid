@@ -1,7 +1,7 @@
 package com.jainhardik120.talevista.data.remote
 
 import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
-import com.jainhardik120.talevista.data.remote.dto.CommentsItem
+import com.jainhardik120.talevista.data.remote.dto.Comments
 import com.jainhardik120.talevista.data.remote.dto.CreatePostResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
 import com.jainhardik120.talevista.data.remote.dto.Posts
@@ -76,8 +76,10 @@ interface PostsApi {
 
     @GET("{postId}/comments")
     suspend fun getPostComments(
-        @Path("postId") postId: String
-    ): Response<List<CommentsItem>>
+        @Path("postId") postId: String,
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null,
+    ): Comments
 
     @POST("{postId}/comment")
     suspend fun createComment(

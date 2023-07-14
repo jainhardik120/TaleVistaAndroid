@@ -2,7 +2,7 @@ package com.jainhardik120.talevista.domain.repository
 
 import com.jainhardik120.talevista.data.remote.PostsQuery
 import com.jainhardik120.talevista.data.remote.dto.CategoriesItem
-import com.jainhardik120.talevista.data.remote.dto.CommentsItem
+import com.jainhardik120.talevista.data.remote.dto.Comments
 import com.jainhardik120.talevista.data.remote.dto.CreatePostResponse
 import com.jainhardik120.talevista.data.remote.dto.MessageResponse
 import com.jainhardik120.talevista.data.remote.dto.Posts
@@ -32,7 +32,7 @@ interface PostsRepository {
 
     suspend fun undislikePost(postId: String): Resource<MessageResponse>
 
-    suspend fun getPostComments(postId: String): Resource<List<CommentsItem>>
+    suspend fun getPostComments(postId: String, page: Int): Flow<Comments>
 
     suspend fun createComment(postId: String, comment: String): Resource<CreatePostResponse>
 

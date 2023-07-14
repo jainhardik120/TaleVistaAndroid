@@ -138,6 +138,22 @@ fun ProfileScreen(
     val likedPosts by viewModel.likedPosts.collectAsState()
 
 
+    val commentLazyListState = rememberLazyListState()
+    val commentShouldPaginate = remember {
+        derivedStateOf {
+            viewModel.commentCanPaginate && (commentLazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                ?: -9) >= (commentLazyListState.layoutInfo.totalItemsCount - 6)
+        }
+    }
+    LaunchedEffect(key1 = commentShouldPaginate.value, block = {
+        if (commentShouldPaginate.value && viewModel.commentListState == ListState.IDLE) {
+            viewModel.getComments()
+        }
+    })
+
+    val comments by viewModel.comments.collectAsState()
+
+
     Scaffold { paddingValues ->
         BoxWithConstraints(Modifier.padding(paddingValues)) {
             val screenHeight = maxHeight
@@ -300,7 +316,23 @@ fun ProfileScreen(
                             }
 
                             2 -> {
-
+                                PaginatingColumn(
+                                    listState = viewModel.commentListState,
+                                    lazyListState = commentLazyListState,
+                                    items = {
+                                        itemsIndexed(comments, key = { _, item ->
+                                            item._id
+                                        }) { index, item ->
+                                            Column {
+                                                Text(text = item.commentContent)
+                                                Text(text = item.postContent)
+                                                Text(text = item.postCreatedAt)
+                                                Text(text = item.createdAt)
+                                            }
+                                            Divider()
+                                        }
+                                    }
+                                )
                             }
                         }
                     }

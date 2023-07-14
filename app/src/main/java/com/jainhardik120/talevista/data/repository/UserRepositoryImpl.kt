@@ -5,6 +5,7 @@ import com.jainhardik120.talevista.data.remote.UsersApi
 import com.jainhardik120.talevista.data.remote.dto.Posts
 import com.jainhardik120.talevista.data.remote.dto.SearchResult
 import com.jainhardik120.talevista.data.remote.dto.User
+import com.jainhardik120.talevista.data.remote.dto.UserComments
 import com.jainhardik120.talevista.domain.repository.UserRepository
 import com.jainhardik120.talevista.util.Resource
 import kotlinx.coroutines.Dispatchers
@@ -89,6 +90,21 @@ class UserRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.d(TAG, "${e.printStackTrace()}")
             emit(Posts(0, emptyList(), 0, 0))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override suspend fun getCommentsByUser(userId: String, page: Int): Flow<UserComments> = flow {
+        try {
+            emit(
+                api.getUserComments(
+                    page = page,
+                    limit = 10,
+                    userId = userId
+                )
+            )
+        } catch (e: Exception) {
+            Log.d(TAG, "${e.printStackTrace()}")
+            emit(UserComments(emptyList(), 0, 0, 0))
         }
     }.flowOn(Dispatchers.IO)
 
