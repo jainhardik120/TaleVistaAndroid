@@ -107,4 +107,9 @@ interface PostsApi {
         @Path("commentId") commentId: String
     ): Response<MessageResponse>
 
+    @DELETE("comment/{commentId}")
+    suspend fun deleteComment(
+        @Path("commentId") commentId: String
+    ): Response<MessageResponse>
+
 }

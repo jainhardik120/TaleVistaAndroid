@@ -49,12 +49,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -64,8 +60,6 @@ import com.jainhardik120.talevista.ui.presentation.login.Gender
 import com.jainhardik120.talevista.ui.presentation.login.LoginEvent
 import com.jainhardik120.talevista.ui.presentation.login.LoginState
 import com.jainhardik120.talevista.util.BASE_SERVER_URL
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -94,7 +88,6 @@ fun RegisterUsernameScreen(
     username: String,
     usernameAvailable: Boolean
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
     var genderMenuExpanded by remember { mutableStateOf(false) }
     var datePickerExpanded by remember { mutableStateOf(false) }
     var bottomSheetExpanded by remember { mutableStateOf(false) }
@@ -176,13 +169,6 @@ fun RegisterUsernameScreen(
     val datePickerState = rememberDatePickerState()
     val scope = rememberCoroutineScope()
 
-    val dobFocusRequester = remember {
-        FocusRequester()
-    }
-    val usernameFocusRequester = remember {
-        FocusRequester()
-    }
-
     val genderEntries = remember {
         listOf(
             Gender.MALE,
@@ -260,9 +246,7 @@ fun RegisterUsernameScreen(
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        Spacer(modifier = Modifier.height(64.dp))
-
+        Spacer(modifier = Modifier.height(16.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             AsyncImage(
                 model = state.picture,
@@ -295,11 +279,7 @@ fun RegisterUsernameScreen(
             ),
             keyboardActions = KeyboardActions(
                 onNext = {
-                    keyboardController?.hide()
-                    scope.launch {
-                        delay(500)
-                        genderMenuExpanded = true
-                    }
+
                 }
             ),
             modifier = Modifier.fillMaxWidth(),
@@ -336,12 +316,6 @@ fun RegisterUsernameScreen(
                         DropdownMenuItem(text = { Text(it.displayName) }, onClick = {
                             genderMenuExpanded = false
                             onEvent(LoginEvent.GenderChanged(it))
-                            if (state.dob == 0L) {
-                                scope.launch {
-                                    delay(200)
-                                    dobFocusRequester.requestFocus()
-                                }
-                            }
                         })
                     }
                 }
@@ -362,7 +336,6 @@ fun RegisterUsernameScreen(
                     }
                 },
                 modifier = Modifier
-                    .focusRequester(dobFocusRequester)
                     .onFocusEvent {
                         if (it.isFocused) {
                             datePickerExpanded = true
@@ -394,12 +367,6 @@ fun RegisterUsernameScreen(
                 }
             ),
             modifier = Modifier
-                .focusRequester(usernameFocusRequester)
-                .onFocusChanged {
-                    if (it.isFocused) {
-                        keyboardController?.show()
-                    }
-                }
                 .fillMaxWidth(),
             singleLine = true,
             isError = (username.isNotEmpty() && !usernameAvailable)

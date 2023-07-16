@@ -2,6 +2,7 @@ package com.jainhardik120.talevista.ui.presentation.home.profile
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,17 +24,22 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Report
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -79,6 +85,7 @@ fun ProfileScreen(
     navController: NavHostController,
     navigateUp: (UiEvent.Navigate) -> Unit
 ) {
+    val hostState = remember { SnackbarHostState() }
     LaunchedEffect(key1 = Unit, block = {
         viewModel.init()
         viewModel.uiEvent.collect {
@@ -92,14 +99,19 @@ fun ProfileScreen(
                 }
 
                 is UiEvent.ShowSnackbar -> {
-
+                    hostState.showSnackbar(it.message)
                 }
             }
         }
 
     })
     val state = viewModel.state
-    val pagerState = rememberPagerState()
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        initialPageOffsetFraction = 0f
+    ) {
+        3
+    }
     val tabItems = listOf(
         "Posts",
         "Likes",
@@ -154,7 +166,7 @@ fun ProfileScreen(
     val comments by viewModel.comments.collectAsState()
 
 
-    Scaffold { paddingValues ->
+    Scaffold(snackbarHost = { SnackbarHost(hostState = hostState) }) { paddingValues ->
         BoxWithConstraints(Modifier.padding(paddingValues)) {
             val screenHeight = maxHeight
             val scrollState = rememberScrollState()
@@ -250,7 +262,6 @@ fun ProfileScreen(
                         }
                     }
                     HorizontalPager(
-                        pageCount = 3,
                         state = pagerState,
                         modifier = Modifier
                             .fillMaxHeight()
@@ -322,12 +333,87 @@ fun ProfileScreen(
                                     items = {
                                         itemsIndexed(comments, key = { _, item ->
                                             item._id
-                                        }) { index, item ->
-                                            Column {
-                                                Text(text = item.commentContent)
-                                                Text(text = item.postContent)
-                                                Text(text = item.postCreatedAt)
-                                                Text(text = item.createdAt)
+                                        }) { _, item ->
+                                            Column(
+                                                Modifier.padding(16.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth(),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Box(modifier = Modifier
+                                                        .size(40.dp)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(100))
+                                                        .clickable {
+
+                                                        }) {
+                                                        AsyncImage(
+                                                            model = item.postAuthorPicture,
+                                                            contentDescription = "ProfileIcon"
+                                                        )
+                                                    }
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .padding(
+                                                                horizontal = 12.dp,
+                                                                vertical = 4.dp
+                                                            )
+                                                            .weight(1f)
+                                                            .fillMaxWidth(),
+                                                        verticalArrangement = Arrangement.Center
+                                                    ) {
+                                                        Text(
+                                                            text = "@${item.postAuthorUsername}",
+                                                            style = MaterialTheme.typography.labelMedium
+                                                        )
+                                                        Text(
+                                                            text = item.postCreatedAt,
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            color = MaterialTheme.colorScheme.outline,
+                                                            maxLines = 1
+                                                        )
+                                                        Text(
+                                                            text = item.postContent,
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            maxLines = 2
+                                                        )
+                                                    }
+                                                }
+                                                Card(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(16.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Column(
+                                                            modifier = Modifier
+                                                                .padding(
+                                                                    vertical = 4.dp
+                                                                )
+                                                                .weight(1f)
+                                                                .fillMaxWidth(),
+                                                            verticalArrangement = Arrangement.Center
+                                                        ) {
+                                                            Text(
+                                                                text = item.createdAt,
+                                                                style = MaterialTheme.typography.labelMedium,
+                                                                color = MaterialTheme.colorScheme.outline,
+                                                                maxLines = 1
+                                                            )
+                                                            Text(
+                                                                text = item.commentContent,
+                                                                overflow = TextOverflow.Ellipsis,
+                                                                modifier = Modifier.fillMaxWidth()
+                                                            )
+                                                        }
+                                                    }
+                                                }
                                             }
                                             Divider()
                                         }

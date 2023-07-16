@@ -2,7 +2,6 @@
 plugins {
     alias(libs.plugins.com.android.application)
     alias(libs.plugins.org.jetbrains.kotlin.android)
-//    id("com.google.gms.google-services")
     id ("dagger.hilt.android.plugin")
     id ("kotlin-kapt")
 }
@@ -56,10 +55,7 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-splashscreen:1.0.1")
-
-//    implementation( platform("com.google.firebase:firebase-bom:32.1.0"))
-//    implementation ("com.google.firebase:firebase-analytics-ktx")
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.activity.compose)
@@ -68,7 +64,6 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
-//    implementation(libs.firebase.auth.ktx)
     implementation(libs.play.services.auth)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
@@ -77,27 +72,21 @@ dependencies {
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
-
-    implementation("io.coil-kt:coil-compose:2.3.0")
-
+    implementation(libs.coil.compose)
     implementation("androidx.compose.material:material-icons-extended")
-
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
-
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.converter.scalars)
-
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.paging.compose)
-
-    implementation("com.exyte:animated-navigation-bar:1.0.0")
+    implementation(libs.accompanist.navigation.animation)
 
 }

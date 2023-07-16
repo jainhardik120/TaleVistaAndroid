@@ -31,9 +31,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
@@ -49,6 +51,7 @@ import com.jainhardik120.talevista.R
 import com.jainhardik120.talevista.ui.presentation.login.LoginEvent
 import com.jainhardik120.talevista.ui.presentation.login.LoginState
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun EmailLoginScreen(
     onEvent: (LoginEvent) -> Unit,
@@ -61,6 +64,9 @@ fun EmailLoginScreen(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
         onResult = handleIntentResult
     )
+
+
+    val keyboardController = LocalSoftwareKeyboardController.current
     Column(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -191,6 +197,7 @@ fun EmailLoginScreen(
                 Text(text = "Sign In With Google")
             }
         }
+
         Row(
             Modifier
                 .fillMaxWidth()

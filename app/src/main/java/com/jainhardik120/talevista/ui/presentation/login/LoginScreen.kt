@@ -1,9 +1,14 @@
 package com.jainhardik120.talevista.ui.presentation.login
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -15,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -31,7 +37,10 @@ import com.jainhardik120.talevista.ui.presentation.login.components.RegisterUser
 import com.jainhardik120.talevista.util.NAVIGATE_UP_ROUTE
 import com.jainhardik120.talevista.util.UiEvent
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalComposeUiApi::class
+)
 @Composable
 fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navigateUp: (String) -> Unit) {
     val hostState = remember { SnackbarHostState() }
@@ -40,16 +49,20 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navigateUp: (String
         viewModel.uiEvent.collect {
             when (it) {
                 is UiEvent.Navigate -> {
-                    if (it.route == Screen.HomeScreen.route) {
-                        navigateUp(it.route)
-                    } else if (it.route == NAVIGATE_UP_ROUTE) {
-                        navController.navigateUp()
-                    } else {
-                        navController.navigate(it.route)
+                    when (it.route) {
+                        Screen.HomeScreen.route -> {
+                            navigateUp(it.route)
+                        }
 
+                        NAVIGATE_UP_ROUTE -> {
+                            navController.navigateUp()
+                        }
+
+                        else -> {
+                            navController.navigate(it.route)
+                        }
                     }
                 }
-
                 is UiEvent.ShowSnackbar -> {
                     hostState.showSnackbar(it.message)
                 }
@@ -62,24 +75,40 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navigateUp: (String
     val usernameAvailable by viewModel.usernameAvailable.collectAsState()
 
 
-    Column(
-        Modifier.imePadding()
-    ) {
-        Scaffold(snackbarHost = { SnackbarHost(hostState = hostState) }, topBar = {
+    Scaffold(
+        Modifier.imePadding(),
+        snackbarHost = { SnackbarHost(hostState = hostState) },
+        topBar = {
             CenterAlignedTopAppBar(title = {
                 Text(text = stringResource(id = R.string.app_name))
             })
-        }) { paddingValues ->
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+    ) { paddingValues ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
+                .systemBarsPadding()
+        ) {
+            NavHost(
+                navController = navController,
+                startDestination = LoginScreenRoutes.EmailLoginScreen.route,
+                route = "login_graph",
+                enterTransition = {
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+                },
+                exitTransition = {
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left)
+                },
+                popEnterTransition = {
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right)
+                },
+                popExitTransition = {
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)
+                }
             ) {
-                NavHost(
-                    navController = navController,
-                    startDestination = LoginScreenRoutes.EmailLoginScreen.route,
-                    route = "login_graph"
-                ) {
                     composable(route = LoginScreenRoutes.EmailLoginScreen.route) {
                         EmailLoginScreen(
                             onEvent = viewModel::onEvent,
@@ -109,7 +138,7 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navigateUp: (String
                     }
                 }
             }
-        }
+
     }
 }
 

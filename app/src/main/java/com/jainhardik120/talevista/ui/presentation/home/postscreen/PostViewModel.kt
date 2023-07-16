@@ -2,6 +2,7 @@ package com.jainhardik120.talevista.ui.presentation.home.postscreen
 
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
@@ -45,7 +46,7 @@ class PostViewModel @Inject constructor(
     private val _comments = MutableStateFlow<List<CommentsItem>>(emptyList())
     val comments: StateFlow<List<CommentsItem>> get() = _comments.asStateFlow()
 
-    private var page by mutableStateOf(1)
+    private var page by mutableIntStateOf(1)
     var canPaginate by mutableStateOf(false)
     var listState by mutableStateOf(ListState.IDLE)
 
@@ -84,9 +85,9 @@ class PostViewModel @Inject constructor(
     }
 
     private fun <T> handleRepositoryResponse(
-        call: suspend () -> Resource<T>, onSuccess: (T) -> Unit = {}, onError: (String?) -> Unit = {
+        call: suspend () -> Resource<T>, onError: (String?) -> Unit = {
             sendUiEvent(UiEvent.ShowSnackbar(message = it ?: "Unknown Error"))
-        }
+        }, onSuccess: (T) -> Unit = {}
     ) {
         viewModelScope.launch {
             when (val response = call()) {
@@ -103,17 +104,51 @@ class PostViewModel @Inject constructor(
         }
     }
 
+    private fun updateLikeDislike(
+        like: Boolean = false,
+        dislike: Boolean = false
+    ) {
+        val prevLiked = state.liked
+        val prevDisliked = state.disliked
+        val likedCountIncrementation = when {
+            prevLiked && !like -> -1
+            !prevLiked && like -> 1
+            else -> 0
+        }
+        val dislikeCountIncrementation = when {
+            prevDisliked && !dislike -> -1
+            !prevDisliked && dislike -> 1
+            else -> 0
+        }
+        state = state.copy(
+            liked = like,
+            disliked = dislike,
+            likeCount = state.likeCount + likedCountIncrementation,
+            dislikeCount = state.dislikeCount + dislikeCountIncrementation
+        )
+    }
+
     fun init() {
         postId = savedStateHandle.get<String>("postId") ?: return
         handleRepositoryResponse(call = { postsRepository.getSinglePost(postId) }, onSuccess = {
             state = state.copy(
                 post = it,
-                isAuthorUser = (it.post.author._id == authController.getUserId())
+                isAuthorUser = (it.post.author._id == authController.getUserId()),
+                likeCount = it.post.likesCount,
+                dislikeCount = it.post.dislikesCount,
+                liked = it.likedByCurrentUser,
+                disliked = it.dislikedByCurrentUser,
+                commentCount = it.commentCount
             )
+        }, onError = {
+            sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE))
         })
         getComments()
         state =
-            state.copy(selfUserPicture = authController.getUserInfo(UserPreferences.PICTURE) ?: "")
+            state.copy(
+                selfUserPicture = authController.getUserInfo(UserPreferences.PICTURE) ?: "",
+                selfId = authController.getUserId() ?: ""
+            )
     }
 
     fun onEvent(event: PostScreenEvent) {
@@ -145,7 +180,10 @@ class PostViewModel @Inject constructor(
                                 __v = 0
                             )
                         ) + _comments.value
-                        state = state.copy(newCommentContent = "")
+                        state = state.copy(
+                            newCommentContent = "",
+                            commentCount = state.commentCount + 1
+                        )
                     })
                 }
             }
@@ -155,8 +193,8 @@ class PostViewModel @Inject constructor(
             }
 
             is PostScreenEvent.DeletePostButtonClicked -> {
-                handleRepositoryResponse({ postsRepository.deletePost(postId) },
-                    { sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE)) })
+                handleRepositoryResponse(call = { postsRepository.deletePost(postId) },
+                    onSuccess = { sendUiEvent(UiEvent.Navigate(NAVIGATE_UP_ROUTE)) })
             }
 
             PostScreenEvent.PostAuthorClicked -> {
@@ -175,6 +213,51 @@ class PostViewModel @Inject constructor(
                         HomeScreenRoutes.CreatePostScreen.route + "?postId=" + state.post?.post?._id
                     )
                 )
+            }
+
+            is PostScreenEvent.CommentAuthorClicked -> {
+                sendUiEvent(
+                    UiEvent.Navigate(
+                        HomeScreenRoutes.ProfileScreen.withArgs(
+                            event.id
+                        )
+                    )
+                )
+            }
+
+            is PostScreenEvent.DeleteCommentClicked -> {
+                handleRepositoryResponse(call = {
+                    postsRepository.deleteComment(event.id)
+                }, onSuccess = {
+                    _comments.value = _comments.value.filter {
+                        it._id != event.id
+                    }
+                    state = state.copy(commentCount = state.commentCount - 1)
+                })
+            }
+
+            PostScreenEvent.DislikeButtonClicked -> {
+                if (state.disliked) {
+                    handleRepositoryResponse({ postsRepository.undislikePost(postId) }) {
+                        updateLikeDislike(like = false, dislike = false)
+                    }
+                } else {
+                    handleRepositoryResponse({ postsRepository.dislikePost(postId) }) {
+                        updateLikeDislike(like = false, dislike = true)
+                    }
+                }
+            }
+
+            PostScreenEvent.LikeButtonClicked -> {
+                if (state.liked) {
+                    handleRepositoryResponse({ postsRepository.unlikePost(postId) }) {
+                        updateLikeDislike(like = false, dislike = false)
+                    }
+                } else {
+                    handleRepositoryResponse({ postsRepository.likePost(postId) }) {
+                        updateLikeDislike(like = true, dislike = false)
+                    }
+                }
             }
         }
 

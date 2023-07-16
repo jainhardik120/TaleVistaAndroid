@@ -10,7 +10,7 @@ data class LoginState(
     val recommendedUserNames: List<String> = emptyList(),
     val showUsernames: Boolean = false,
     val name: String = "",
-    val picture: String = "$BASE_SERVER_URL/avatar1).png",
+    val picture: String = "$BASE_SERVER_URL/avatar8).png",
     val dob: Long = 0,
     val gender: Gender? = null,
     val googleIdToken: String = "",

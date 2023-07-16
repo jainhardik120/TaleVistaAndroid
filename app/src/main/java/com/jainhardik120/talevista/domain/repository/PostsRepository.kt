@@ -47,4 +47,6 @@ interface PostsRepository {
     suspend fun getSinglePost(postId: String): Resource<SinglePost>
 
     suspend fun deletePost(postId: String): Resource<MessageResponse>
+
+    suspend fun deleteComment(commentId: String): Resource<MessageResponse>
 }

@@ -176,4 +176,8 @@ class PostsRepositoryImpl @Inject constructor(
     override suspend fun deletePost(postId: String): Resource<MessageResponse> {
         return handleApiCall { api.deletePost(postId) }
     }
+
+    override suspend fun deleteComment(commentId: String): Resource<MessageResponse> {
+        return handleApiCall { api.deleteComment(commentId) }
+    }
 }

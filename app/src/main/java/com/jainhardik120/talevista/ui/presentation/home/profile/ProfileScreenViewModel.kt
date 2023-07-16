@@ -223,7 +223,9 @@ class ProfileScreenViewModel @Inject constructor(
     private fun onPostCardEvent(event: PostCardEvent, post: Post, index: Int) {
         when (event) {
             PostCardEvent.AuthorClicked -> {
-//                sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.ProfileScreen.withArgs(post.author._id)))
+                if (post.author._id != state.userId) {
+                    sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.ProfileScreen.withArgs(post.author._id)))
+                }
             }
 
             PostCardEvent.DislikeButtonClicked -> {

@@ -26,17 +26,23 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +60,7 @@ fun SearchScreen(
     viewModel: SearchViewModel,
     navController: NavHostController
 ) {
+    val hostState = remember { SnackbarHostState() }
     val searchText by viewModel.searchText.collectAsState()
     val users by viewModel.users.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
@@ -64,6 +71,7 @@ fun SearchScreen(
             .imePadding()
     ) {
         Scaffold(
+            snackbarHost = { SnackbarHost(hostState = hostState) },
             topBar = {
                 Row(
                     Modifier
@@ -100,7 +108,9 @@ fun SearchScreen(
                                 }
                             ),
                             maxLines = 1,
-                            singleLine = true
+                            singleLine = true,
+                            cursorBrush = SolidColor(LocalContentColor.current),
+                            textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current)
                         )
                         if (searchText.isEmpty()) {
                             Text(
