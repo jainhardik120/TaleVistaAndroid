@@ -13,7 +13,6 @@ import com.jainhardik120.talevista.data.remote.dto.Post
 import com.jainhardik120.talevista.domain.repository.AuthController
 import com.jainhardik120.talevista.domain.repository.PostsRepository
 import com.jainhardik120.talevista.domain.repository.UserRepository
-import com.jainhardik120.talevista.ui.components.PostCardEvent
 import com.jainhardik120.talevista.ui.presentation.home.HomeScreenRoutes
 import com.jainhardik120.talevista.ui.presentation.home.posts.ListState
 import com.jainhardik120.talevista.util.NAVIGATE_LOGIN_ROUTE
@@ -73,6 +72,12 @@ class ProfileScreenViewModel @Inject constructor(
     var commentCanPaginate by mutableStateOf(false)
     var commentListState by mutableStateOf(ListState.IDLE)
 
+    private fun List<Post>.customMapper(): List<Post> {
+        return this.map {
+            it.copy(createdAt = timeAgoText(it.createdAt))
+        }
+    }
+
     fun getPosts() = viewModelScope.launch {
         if ((page == 1 || (page != 1 && canPaginate) && listState == ListState.IDLE) && state.userId.isNotEmpty()) {
             listState = if (page == 1) ListState.LOADING else ListState.PAGINATING
@@ -80,9 +85,9 @@ class ProfileScreenViewModel @Inject constructor(
                 if (it.currentPage != 0) {
                     canPaginate = it.currentPage < it.totalPages
                     if (page == 1) {
-                        _posts.value = it.posts
+                        _posts.value = it.posts.customMapper()
                     } else {
-                        _posts.value = _posts.value + it.posts
+                        _posts.value = _posts.value + it.posts.customMapper()
                     }
                     listState = ListState.IDLE
                     if (canPaginate) {
@@ -102,9 +107,9 @@ class ProfileScreenViewModel @Inject constructor(
                 if (it.currentPage != 0) {
                     likedCanPaginate = it.currentPage < it.totalPages
                     if (likedPage == 1) {
-                        _likedPosts.value = it.posts
+                        _likedPosts.value = it.posts.customMapper()
                     } else {
-                        _likedPosts.value = _likedPosts.value + it.posts
+                        _likedPosts.value = _likedPosts.value + it.posts.customMapper()
                     }
                     likedListState = ListState.IDLE
                     if (likedCanPaginate) {
@@ -207,66 +212,8 @@ class ProfileScreenViewModel @Inject constructor(
         })
     }
 
-    private fun updatePostLikeDislikeAt(
-        index: Int = 0,
-        like: Boolean = false,
-        dislike: Boolean = false
-    ) {
-        val updatedPosts = _posts.value.toMutableList()
-        updatedPosts[index] = updatedPosts[index].copy(
-            dislikedByCurrentUser = dislike, likedByCurrentUser = like
-        )
-        _posts.value = updatedPosts
-    }
-
-
-    private fun onPostCardEvent(event: PostCardEvent, post: Post, index: Int) {
-        when (event) {
-            PostCardEvent.AuthorClicked -> {
-                if (post.author._id != state.userId) {
-                    sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.ProfileScreen.withArgs(post.author._id)))
-                }
-            }
-
-            PostCardEvent.DislikeButtonClicked -> {
-                val postId = _posts.value[index]._id
-                if (_posts.value[index].dislikedByCurrentUser) {
-                    handleRepositoryResponse({ postsRepository.undislikePost(postId) }) {
-                        updatePostLikeDislikeAt(index, dislike = false)
-                    }
-                } else {
-                    handleRepositoryResponse({ postsRepository.dislikePost(postId) }) {
-                        updatePostLikeDislikeAt(index, dislike = true)
-                    }
-                }
-            }
-
-            PostCardEvent.LikeButtonClicked -> {
-                val postId = post._id
-                if (_posts.value[index].likedByCurrentUser) {
-                    handleRepositoryResponse({ postsRepository.unlikePost(postId) }) {
-                        updatePostLikeDislikeAt(index, like = false)
-                    }
-                } else {
-                    handleRepositoryResponse({ postsRepository.likePost(postId) }) {
-                        updatePostLikeDislikeAt(index, like = true)
-                    }
-                }
-            }
-
-            PostCardEvent.PostClicked -> {
-                sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.SinglePostScreen.withArgs(post._id)))
-            }
-        }
-    }
-
     fun onEvent(event: ProfileScreenEvent) {
         when (event) {
-
-            is ProfileScreenEvent.CardEvent -> {
-                onPostCardEvent(event.event, event.post, event.index)
-            }
-
             ProfileScreenEvent.MoreIconClicked -> {
                 state = state.copy(menuExpanded = !state.menuExpanded)
             }
@@ -278,6 +225,16 @@ class ProfileScreenViewModel @Inject constructor(
             ProfileScreenEvent.LogoutItemClicked -> {
                 authController.logOutCurrentUser()
                 sendUiEvent(UiEvent.Navigate(NAVIGATE_LOGIN_ROUTE))
+            }
+
+            is ProfileScreenEvent.PostClicked -> {
+                sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.SinglePostScreen.withArgs(event.postId)))
+            }
+
+            is ProfileScreenEvent.UserIconClicked -> {
+                if (event.userId != state.userId) {
+                    sendUiEvent(UiEvent.Navigate(HomeScreenRoutes.ProfileScreen.withArgs(event.userId)))
+                }
             }
         }
     }
@@ -302,11 +259,9 @@ data class ProfileComment(
 )
 
 sealed class ProfileScreenEvent {
-    data class CardEvent(val event: PostCardEvent, val post: Post, val index: Int) :
-        ProfileScreenEvent()
-
     object MoreIconClicked : ProfileScreenEvent()
     object DismissMenu : ProfileScreenEvent()
     object LogoutItemClicked : ProfileScreenEvent()
-
+    data class UserIconClicked(val userId: String) : ProfileScreenEvent()
+    data class PostClicked(val postId: String) : ProfileScreenEvent()
 }

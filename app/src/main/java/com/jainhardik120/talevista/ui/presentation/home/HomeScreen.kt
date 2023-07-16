@@ -47,7 +47,6 @@ fun HomeScreen(navigateUp: (UiEvent.Navigate) -> Unit) {
                 if (targetState.destination.route?.contains(HomeScreenRoutes.CreatePostScreen.route) == true) {
                     ExitTransition.None
                 } else {
-
                     slideOutOfContainer(
                         AnimatedContentTransitionScope.SlideDirection.Left,
                         animationSpec = tween(700)

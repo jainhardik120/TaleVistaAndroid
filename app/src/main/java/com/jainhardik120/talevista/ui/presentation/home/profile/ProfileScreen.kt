@@ -70,7 +70,6 @@ import coil.compose.AsyncImage
 import com.jainhardik120.talevista.R
 import com.jainhardik120.talevista.data.remote.dto.User
 import com.jainhardik120.talevista.ui.components.PaginatingColumn
-import com.jainhardik120.talevista.ui.components.PostCard
 import com.jainhardik120.talevista.ui.presentation.Screen
 import com.jainhardik120.talevista.ui.presentation.home.posts.ListState
 import com.jainhardik120.talevista.util.NAVIGATE_LOGIN_ROUTE
@@ -290,15 +289,79 @@ fun ProfileScreen(
                                         itemsIndexed(posts, key = { _, item ->
                                             item._id
                                         }) { index, item ->
-                                            PostCard(post = item, onEvent = {
-                                                viewModel.onEvent(
-                                                    ProfileScreenEvent.CardEvent(
-                                                        it,
-                                                        item,
-                                                        index
+                                            Column(
+                                                Modifier
+                                                    .clickable {
+                                                        viewModel.onEvent(
+                                                            ProfileScreenEvent.PostClicked(
+                                                                item._id
+                                                            )
+                                                        )
+                                                    }
+                                                    .padding(16.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(40.dp)
+                                                ) {
+                                                    Box(modifier = Modifier
+                                                        .size(40.dp)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(100))
+                                                        .clickable {
+                                                            viewModel.onEvent(
+                                                                ProfileScreenEvent.UserIconClicked(
+                                                                    item.author._id
+                                                                )
+                                                            )
+                                                        }) {
+                                                        AsyncImage(
+                                                            model = item.author.picture,
+                                                            contentDescription = "ProfileIcon"
+                                                        )
+                                                    }
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .padding(
+                                                                horizontal = 12.dp,
+                                                                vertical = 4.dp
+                                                            ),
+                                                        verticalArrangement = Arrangement.Center
+                                                    ) {
+                                                        Text(
+                                                            text = item.author.username,
+                                                            style = MaterialTheme.typography.labelMedium
+                                                        )
+                                                        Text(
+                                                            text = item.createdAt,
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            color = MaterialTheme.colorScheme.outline,
+                                                            maxLines = 1
+                                                        )
+                                                    }
+                                                    Spacer(
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                            .fillMaxSize()
                                                     )
+                                                    Column(verticalArrangement = Arrangement.Center) {
+                                                        Text(
+                                                            text = item.category,
+                                                            style = MaterialTheme.typography.labelMedium
+                                                        )
+                                                    }
+                                                }
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Text(
+                                                    text = item.content,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    maxLines = 4
                                                 )
-                                            }, index = index)
+
+                                            }
+                                            Divider()
                                         }
                                     }
                                 )
@@ -312,15 +375,79 @@ fun ProfileScreen(
                                         itemsIndexed(likedPosts, key = { _, item ->
                                             item._id
                                         }) { index, item ->
-                                            PostCard(post = item, onEvent = {
-                                                viewModel.onEvent(
-                                                    ProfileScreenEvent.CardEvent(
-                                                        it,
-                                                        item,
-                                                        index
+                                            Column(
+                                                Modifier
+                                                    .clickable {
+                                                        viewModel.onEvent(
+                                                            ProfileScreenEvent.PostClicked(
+                                                                item._id
+                                                            )
+                                                        )
+                                                    }
+                                                    .padding(16.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(40.dp)
+                                                ) {
+                                                    Box(modifier = Modifier
+                                                        .size(40.dp)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(100))
+                                                        .clickable {
+                                                            viewModel.onEvent(
+                                                                ProfileScreenEvent.UserIconClicked(
+                                                                    item.author._id
+                                                                )
+                                                            )
+                                                        }) {
+                                                        AsyncImage(
+                                                            model = item.author.picture,
+                                                            contentDescription = "ProfileIcon"
+                                                        )
+                                                    }
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .padding(
+                                                                horizontal = 12.dp,
+                                                                vertical = 4.dp
+                                                            ),
+                                                        verticalArrangement = Arrangement.Center
+                                                    ) {
+                                                        Text(
+                                                            text = item.author.username,
+                                                            style = MaterialTheme.typography.labelMedium
+                                                        )
+                                                        Text(
+                                                            text = item.createdAt,
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            color = MaterialTheme.colorScheme.outline,
+                                                            maxLines = 1
+                                                        )
+                                                    }
+                                                    Spacer(
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                            .fillMaxSize()
                                                     )
+                                                    Column(verticalArrangement = Arrangement.Center) {
+                                                        Text(
+                                                            text = item.category,
+                                                            style = MaterialTheme.typography.labelMedium
+                                                        )
+                                                    }
+                                                }
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Text(
+                                                    text = item.content,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    maxLines = 4
                                                 )
-                                            }, index = index)
+
+                                            }
+                                            Divider()
                                         }
                                     }
                                 )
@@ -335,7 +462,15 @@ fun ProfileScreen(
                                             item._id
                                         }) { _, item ->
                                             Column(
-                                                Modifier.padding(16.dp)
+                                                Modifier
+                                                    .clickable {
+                                                        viewModel.onEvent(
+                                                            ProfileScreenEvent.PostClicked(
+                                                                item.postId
+                                                            )
+                                                        )
+                                                    }
+                                                    .padding(16.dp)
                                             ) {
                                                 Row(
                                                     modifier = Modifier
@@ -347,7 +482,11 @@ fun ProfileScreen(
                                                         .padding(4.dp)
                                                         .clip(RoundedCornerShape(100))
                                                         .clickable {
-
+                                                            viewModel.onEvent(
+                                                                ProfileScreenEvent.UserIconClicked(
+                                                                    item.postAuthorId
+                                                                )
+                                                            )
                                                         }) {
                                                         AsyncImage(
                                                             model = item.postAuthorPicture,
