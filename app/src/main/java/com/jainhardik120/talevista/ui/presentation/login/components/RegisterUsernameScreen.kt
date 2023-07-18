@@ -1,5 +1,7 @@
 package com.jainhardik120.talevista.ui.presentation.login.components
 
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,8 +25,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -35,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -51,10 +57,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.jainhardik120.talevista.ui.presentation.login.Gender
 import com.jainhardik120.talevista.ui.presentation.login.LoginEvent
@@ -91,6 +105,45 @@ fun RegisterUsernameScreen(
     var genderMenuExpanded by remember { mutableStateOf(false) }
     var datePickerExpanded by remember { mutableStateOf(false) }
     var bottomSheetExpanded by remember { mutableStateOf(false) }
+    var privacyPolicyShowing by remember { mutableStateOf(false) }
+
+    if (privacyPolicyShowing) {
+        Dialog(
+            onDismissRequest = { privacyPolicyShowing = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(Modifier.fillMaxSize()) {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        IconButton(onClick = { privacyPolicyShowing = false }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Close Icon")
+                        }
+                        Text(
+                            text = "Privacy Policy",
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.width(40.dp))
+                    }
+                    AndroidView(factory = {
+                        WebView(it).apply {
+                            webViewClient = WebViewClient()
+                            loadUrl("$BASE_SERVER_URL/privacy_policy.html")
+                        }
+                    },
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .fillMaxHeight())
+                }
+            }
+        }
+    }
 
     val images by remember {
         mutableStateOf(
@@ -372,9 +425,46 @@ fun RegisterUsernameScreen(
             isError = (username.isNotEmpty() && !usernameAvailable)
         )
         Spacer(modifier = Modifier.height(8.dp))
+        var checkBoxChecked by remember {
+            mutableStateOf(false)
+        }
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Checkbox(
+                checked = checkBoxChecked,
+                onCheckedChange = { checkBoxChecked = it },
+                Modifier.padding(end = 16.dp)
+            )
+            Text(
+                buildAnnotatedString {
+                    append("I agree and accept ")
+                    withStyle(
+                        style = SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        append("Privacy Policy")
+                    }
+                },
+                modifier = Modifier.clickable {
+                    privacyPolicyShowing = true
+                }
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+
         Button(
             onClick = { onEvent(LoginEvent.RegisterUsernameButtonClicked) },
-            Modifier.fillMaxWidth()
+            Modifier.fillMaxWidth(),
+            enabled = checkBoxChecked && (state.name.isNotEmpty() && username.isNotEmpty() && state.gender != null)
         ) {
             Text(text = "Create Account")
         }

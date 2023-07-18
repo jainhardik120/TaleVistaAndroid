@@ -178,18 +178,25 @@ class LoginViewModel @Inject constructor(
         when (event) {
             is LoginEvent.LoginMailChanged -> {
                 state = state.copy(loginEmail = event.email)
+                state =
+                    state.copy(loginButtonEnabled = (state.loginEmail.isNotEmpty() && state.loginPassword.isNotEmpty()))
             }
 
             is LoginEvent.LoginPasswordChanged -> {
                 state = state.copy(loginPassword = event.password)
+                state =
+                    state.copy(loginButtonEnabled = (state.loginEmail.isNotEmpty() && state.loginPassword.isNotEmpty()))
             }
 
             is LoginEvent.RegisterMailChanged -> {
                 state = state.copy(registerEmail = event.email)
+                state = state.copy(registerEmailButtonEnabled = (state.registerEmail.isNotEmpty()))
             }
 
             is LoginEvent.RegisterPasswordChanged -> {
                 state = state.copy(registerPassword = event.password)
+                state =
+                    state.copy(registerPasswordButtonEnabled = (state.registerPassword.isNotEmpty() && state.registerPassword.length >= 8))
             }
 
             is LoginEvent.RegisterUserNameChanged -> {
@@ -315,6 +322,7 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
+
 
     private fun dobString(milliseconds: Long): String {
         val date = Date(milliseconds)

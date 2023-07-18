@@ -141,7 +141,10 @@ fun EmailLoginScreen(
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
-                        onEvent(LoginEvent.LoginButtonClicked)
+                        if (state.loginButtonEnabled) {
+                            onEvent(LoginEvent.LoginButtonClicked)
+
+                        }
                     }
                 ),
                 singleLine = true
@@ -167,7 +170,8 @@ fun EmailLoginScreen(
                     .padding(horizontal = 16.dp),
                 onClick = {
                     onEvent(LoginEvent.LoginButtonClicked)
-                }) {
+                }, enabled = state.loginButtonEnabled
+            ) {
                 Text(text = "Sign In")
             }
             Spacer(modifier = Modifier.height(8.dp))

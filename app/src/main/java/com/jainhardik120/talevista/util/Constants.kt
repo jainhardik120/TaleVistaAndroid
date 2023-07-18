@@ -12,7 +12,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-const val BASE_SERVER_URL = "https://tale-vista-server.onrender.com"
+const val BASE_SERVER_URL = "https://talevista.vercel.app"
 
 fun timeAgoText(text: String): String {
     val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())

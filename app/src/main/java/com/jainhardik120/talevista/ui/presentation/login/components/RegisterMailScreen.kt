@@ -58,7 +58,9 @@ fun RegisterMailScreen(
         Button(modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-            onClick = { onEvent(LoginEvent.RegisterMailButtonClicked) }) {
+            onClick = { onEvent(LoginEvent.RegisterMailButtonClicked) },
+            enabled = state.registerEmailButtonEnabled
+        ) {
             Text(text = "Next")
         }
     }
@@ -92,7 +94,10 @@ fun ForgotPasswordScreen(
             ),
             keyboardActions = KeyboardActions(
                 onNext = {
-                    onEvent(LoginEvent.SendResetMailClicked)
+                    if (state.registerEmailButtonEnabled) {
+                        onEvent(LoginEvent.SendResetMailClicked)
+
+                    }
                 }
             ),
             singleLine = true

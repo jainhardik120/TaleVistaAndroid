@@ -85,7 +85,10 @@ fun RegisterPasswordScreen(
             ),
             keyboardActions = KeyboardActions(
                 onNext = {
-                    onEvent(LoginEvent.RegisterPasswordButtonClicked)
+                    if (state.registerPasswordButtonEnabled) {
+                        onEvent(LoginEvent.RegisterPasswordButtonClicked)
+
+                    }
                 }
             ),
             singleLine = true
@@ -94,7 +97,9 @@ fun RegisterPasswordScreen(
         Button(modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-            onClick = { onEvent(LoginEvent.RegisterPasswordButtonClicked) }) {
+            onClick = { onEvent(LoginEvent.RegisterPasswordButtonClicked) },
+            enabled = state.registerPasswordButtonEnabled
+        ) {
             Text(text = "Next")
         }
     }

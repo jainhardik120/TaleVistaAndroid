@@ -3,6 +3,8 @@ accompanist-navigation-animation = "0.31.5-beta"
 agp = "8.1.0-rc01"
 androidx-hilt-compiler = "1.0.0"
 androidx-paging-compose = "3.2.0-rc01"
+app-update-ktx = "2.1.0"
+app-update = "2.1.0"
 coil-compose = "2.4.0"
 converter-moshi = "2.9.0"
 core-splashscreen = "1.0.1"
@@ -32,6 +34,8 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging-compose" }
 androidx-paging-runtime-ktx = { module = "androidx.paging:paging-runtime-ktx", version.ref = "paging-compose" }
+app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "app-update-ktx" }
+app-update = { module = "com.google.android.play:app-update", version.ref = "app-update" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converter-moshi" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "converter-moshi" }

@@ -14,8 +14,8 @@ android {
         applicationId = "com.jainhardik120.talevista"
         minSdk = 24
         targetSdk = 33
-        versionCode = 3
-        versionName = "0.2"
+        versionCode = 4
+        versionName = "0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -89,4 +89,11 @@ dependencies {
     implementation(libs.androidx.paging.compose)
     implementation(libs.accompanist.navigation.animation)
 
+
+    // This dependency is downloaded from the Google’s Maven repository.
+    // So, make sure you also include that repository in your project's build.gradle file.
+    implementation(libs.app.update)
+
+    // For Kotlin users also import the Kotlin extensions library for Play In-App Update:
+    implementation(libs.app.update.ktx)
 }

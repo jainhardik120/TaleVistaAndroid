@@ -25,7 +25,7 @@ interface PostsApi {
     @GET("categories")
     suspend fun getCategories(): Response<List<CategoriesItem>>
 
-    @GET(BASE_URL)
+    @GET("$BASE_SERVER_URL/api/posts")
     suspend fun getPosts(
         @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null,
@@ -33,26 +33,27 @@ interface PostsApi {
         @Query("category") category: String? = null,
     ): Posts
 
-    @GET("post/{postId}")
-    suspend fun getSinglePost(
-        @Path("postId") postId: String
-    ): Response<SinglePost>
-
-    @DELETE("post/{postId}")
-    suspend fun deletePost(
-        @Path("postId") postId: String
-    ): Response<MessageResponse>
-
-    @PUT("post/{postId}")
-    suspend fun editPost(
-        @Path("postId") postId: String,
-        @Body post: RequestBody
-    ): Response<MessageResponse>
-
     @POST(BASE_URL)
     suspend fun createPost(
         @Body post: RequestBody
     ): Response<CreatePostResponse>
+
+
+    @GET("{postId}")
+    suspend fun getSinglePost(
+        @Path("postId") postId: String
+    ): Response<SinglePost>
+
+    @DELETE("{postId}")
+    suspend fun deletePost(
+        @Path("postId") postId: String
+    ): Response<MessageResponse>
+
+    @PUT("{postId}")
+    suspend fun editPost(
+        @Path("postId") postId: String,
+        @Body post: RequestBody
+    ): Response<MessageResponse>
 
     @PUT("{postId}/like")
     suspend fun likePost(
@@ -74,7 +75,7 @@ interface PostsApi {
         @Path("postId") postId: String
     ): Response<MessageResponse>
 
-    @GET("{postId}/comments")
+    @GET("{postId}/comment")
     suspend fun getPostComments(
         @Path("postId") postId: String,
         @Query("page") page: Int? = null,

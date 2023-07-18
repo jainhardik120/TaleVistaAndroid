@@ -15,5 +15,8 @@ data class LoginState(
     val gender: Gender? = null,
     val googleIdToken: String = "",
     val isGoogleUsed: Boolean = false,
-    val resetMail: String = ""
+    val resetMail: String = "",
+    val loginButtonEnabled: Boolean = false,
+    val registerEmailButtonEnabled: Boolean = false,
+    val registerPasswordButtonEnabled: Boolean = false
 )
